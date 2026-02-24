@@ -13,6 +13,7 @@ const DataManager = {
     SENT_REMINDERS_KEY: 'lektori_sent_reminders',
     SCHEDULER_LOG_KEY: 'lektori_scheduler_log',
     CUSTOM_SCHEDULE_KEY: 'lektori_custom_schedule',
+    MASS_NOTES_KEY: 'lektori_mass_notes',
 
     // Lectors CRUD
     getLectors() {
@@ -205,6 +206,24 @@ const DataManager = {
     getBaseMassEdits(year, month, dateStr, time) {
         const schedule = this.getCustomSchedule(year, month);
         return schedule.edited[`${dateStr}_${time}`] || null;
+    },
+
+    // Mass notes (per mass annotations)
+    getMassNote(dateStr, time) {
+        const data = localStorage.getItem(this.MASS_NOTES_KEY);
+        const notes = data ? JSON.parse(data) : {};
+        return notes[`${dateStr}_${time}`] || '';
+    },
+
+    saveMassNote(dateStr, time, note) {
+        const data = localStorage.getItem(this.MASS_NOTES_KEY);
+        const notes = data ? JSON.parse(data) : {};
+        if (note && note.trim()) {
+            notes[`${dateStr}_${time}`] = note.trim();
+        } else {
+            delete notes[`${dateStr}_${time}`];
+        }
+        localStorage.setItem(this.MASS_NOTES_KEY, JSON.stringify(notes));
     }
 };
 
@@ -219,14 +238,28 @@ const CalendarLogic = {
         'Júl', 'August', 'September', 'Október', 'November', 'December'
     ],
 
-    // Special dates for 2026
+    // Special dates for 2026 (Easter = 5. apríl)
     specialDates: {
-        // Veľká noc 2026
+        // Popolcová streda (začiatok Pôstu)
+        '2026-02-18': { name: 'Popolcová streda', type: 'single-special', time: '18:00', readings: 2 },
+        // Kvetná nedeľa
+        '2026-03-29': { name: 'Kvetná nedeľa', type: 'special-sunday' },
+        // Veľký týždeň a Veľká noc 2026
         '2026-04-02': { name: 'Zelený štvrtok', type: 'holy-thursday', time: '18:00', readings: 1 },
         '2026-04-03': { name: 'Veľký piatok – Obrady', type: 'good-friday', time: '15:00', readings: 2 },
         '2026-04-04': { name: 'Biela sobota – Vigília', type: 'holy-saturday', time: '20:00', readings: 7 },
         '2026-04-05': { name: 'Veľkonočná nedeľa', type: 'easter-sunday' },
         '2026-04-06': { name: 'Veľkonočný pondelok', type: 'easter-monday', time: '9:00', readings: 2 },
+        // Nanebovstúpenie Pána (štvrtok)
+        '2026-05-14': { name: 'Nanebovstúpenie Pána', type: 'single-special', time: '18:00', readings: 2 },
+        // Zoslanie Ducha Svätého – Turíce
+        '2026-05-24': { name: 'Zoslanie Ducha Svätého', type: 'special-sunday' },
+        // Najsvätejšia Trojica – ODPUSTOVÁ SLÁVNOSŤ
+        '2026-05-31': { name: 'Najsv. Trojica – Odpustová slávnosť', type: 'special-sunday' },
+        // Najsvätejšie Telo a Krv Kristova (Božie Telo)
+        '2026-06-04': { name: 'Božie Telo', type: 'single-special', time: '18:00', readings: 2 },
+        // Všetkých svätých (nedeľa v 2026)
+        '2026-11-01': { name: 'Všetkých svätých', type: 'special-sunday' },
     },
 
     // Get the first Friday of a month
@@ -356,6 +389,35 @@ const CalendarLogic = {
                     });
                     continue;
                 }
+
+                // Generic special Sunday (Pentecost, Trinity, Palm Sunday, etc.)
+                if (special.type === 'special-sunday') {
+                    schedule.push({
+                        date: dateStr, day: day, dayName: this.dayNames[dayOfWeek],
+                        time: '9:00', type: 'special', typeName: special.name,
+                        readings: 2, cssClass: 'row-special', badgeClass: 'badge-special',
+                        isSpecial: true
+                    });
+                    schedule.push({
+                        date: dateStr, day: day, dayName: this.dayNames[dayOfWeek],
+                        time: '18:00', type: 'special', typeName: special.name,
+                        readings: 2, cssClass: 'row-special', badgeClass: 'badge-special',
+                        isSpecial: true
+                    });
+                    continue;
+                }
+
+                // Single special mass (Ash Wednesday, Ascension, Corpus Christi, etc.)
+                if (special.type === 'single-special') {
+                    schedule.push({
+                        date: dateStr, day: day, dayName: this.dayNames[dayOfWeek],
+                        time: special.time, type: 'special', typeName: special.name,
+                        readings: special.readings || 2,
+                        cssClass: 'row-special', badgeClass: 'badge-special',
+                        isSpecial: true
+                    });
+                    continue;
+                }
             }
 
             // Regular schedule
@@ -479,9 +541,9 @@ const CalendarLogic = {
 
             if (this.specialDates[dateStr]) {
                 const special = this.specialDates[dateStr];
-                if (special.type === 'easter-sunday') {
-                    schedule.push({ date: dateStr, day, dayName: this.dayNames[dayOfWeek], time: '9:00', type: 'special', typeName: 'Veľkonočná nedeľa', readings: 2, cssClass: 'row-special', badgeClass: 'badge-special', isSpecial: true });
-                    schedule.push({ date: dateStr, day, dayName: this.dayNames[dayOfWeek], time: '18:00', type: 'special', typeName: 'Veľkonočná nedeľa', readings: 2, cssClass: 'row-special', badgeClass: 'badge-special', isSpecial: true });
+                if (special.type === 'easter-sunday' || special.type === 'special-sunday') {
+                    schedule.push({ date: dateStr, day, dayName: this.dayNames[dayOfWeek], time: '9:00', type: 'special', typeName: special.name, readings: 2, cssClass: 'row-special', badgeClass: 'badge-special', isSpecial: true });
+                    schedule.push({ date: dateStr, day, dayName: this.dayNames[dayOfWeek], time: '18:00', type: 'special', typeName: special.name, readings: 2, cssClass: 'row-special', badgeClass: 'badge-special', isSpecial: true });
                 } else if (special.time) {
                     schedule.push({ date: dateStr, day, dayName: this.dayNames[dayOfWeek], time: special.time, type: 'special', typeName: special.name, readings: special.readings || 1, cssClass: 'row-special', badgeClass: 'badge-special', isSpecial: true });
                 }
@@ -972,6 +1034,31 @@ const UIController = {
             badge.className = `mass-type-badge ${entry.badgeClass}`;
             badge.textContent = entry.typeName;
             tdType.appendChild(badge);
+
+            // Mass note (displayed under type name in smaller text)
+            const massNote = DataManager.getMassNote(entry.date, entry.time);
+            if (massNote) {
+                const noteEl = document.createElement('div');
+                noteEl.className = 'mass-note';
+                noteEl.textContent = `(${massNote})`;
+                tdType.appendChild(noteEl);
+            }
+
+            // Note edit button
+            const noteBtn = document.createElement('span');
+            noteBtn.className = 'mass-note-btn';
+            noteBtn.innerHTML = massNote ? '<i class="fas fa-edit"></i>' : '<i class="fas fa-sticky-note"></i>';
+            noteBtn.title = massNote ? 'Upraviť poznámku' : 'Pridať poznámku';
+            noteBtn.addEventListener('click', (ev) => {
+                ev.stopPropagation();
+                const current = DataManager.getMassNote(entry.date, entry.time);
+                const newNote = prompt('Poznámka k omši (nechajte prázdne pre odstránenie):', current || '');
+                if (newNote !== null) {
+                    DataManager.saveMassNote(entry.date, entry.time, newNote);
+                    this.renderCalendar();
+                }
+            });
+            tdType.appendChild(noteBtn);
             tr.appendChild(tdType);
 
             // 1. čítanie
