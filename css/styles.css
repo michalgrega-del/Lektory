@@ -1,0 +1,2323 @@
+/* ==========================================
+   LEKTORI - Church Lector Scheduling App
+   Modern CSS Design
+   ========================================== */
+
+/* CSS Custom Properties */
+:root {
+    --primary: #6C47FF;
+    --primary-light: #8B6FFF;
+    --primary-dark: #5232CC;
+    --primary-bg: #F0ECFF;
+    --secondary: #FF6B6B;
+    --accent: #4ECDC4;
+    --gold: #FFD93D;
+    --success: #2ECC71;
+    --warning: #F39C12;
+    --danger: #E74C3C;
+    --whatsapp: #25D366;
+    --email-blue: #4A90D9;
+
+    --bg-main: #F5F7FA;
+    --bg-card: #FFFFFF;
+    --bg-dark: #1A1A2E;
+
+    --text-primary: #2D3436;
+    --text-secondary: #636E72;
+    --text-light: #B2BEC3;
+    --text-white: #FFFFFF;
+
+    --border-light: #E8ECF0;
+    --border-medium: #D1D8E0;
+
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+    --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.15);
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Day-specific colors */
+    --tuesday: #3498DB;
+    --thursday: #9B59B6;
+    --friday: #E67E22;
+    --sunday-morning: #2ECC71;
+    --sunday-evening: #1ABC9C;
+    --special: #E74C3C;
+}
+
+/* Reset & Base */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-main);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+/* ==========================================
+   HEADER
+   ========================================== */
+.main-header {
+    background: linear-gradient(135deg, var(--bg-dark) 0%, #16213E 50%, #0F3460 100%);
+    color: var(--text-white);
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow-lg);
+}
+
+.header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.logo i {
+    font-size: 2.2rem;
+    color: var(--gold);
+    filter: drop-shadow(0 2px 4px rgba(255, 217, 61, 0.3));
+}
+
+.logo h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+}
+
+.logo .subtitle {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 300;
+    letter-spacing: 0.05em;
+}
+
+.main-nav {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.3rem;
+    border: none;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: var(--transition);
+    font-family: inherit;
+}
+
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-white);
+}
+
+.nav-btn.active {
+    background: var(--primary);
+    color: var(--text-white);
+    box-shadow: 0 4px 15px rgba(108, 71, 255, 0.4);
+}
+
+.nav-btn i {
+    font-size: 1rem;
+}
+
+/* ==========================================
+   TAB CONTENT
+   ========================================== */
+.tab-content {
+    display: none;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    animation: fadeIn 0.4s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================================
+   CALENDAR SECTION
+   ========================================== */
+.calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.month-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    min-width: 280px;
+    text-align: center;
+}
+
+.month-nav-btn {
+    width: 48px;
+    height: 48px;
+    border: none;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.month-nav-btn:hover {
+    background: var(--primary);
+    color: var(--text-white);
+    box-shadow: var(--shadow-md);
+    transform: scale(1.1);
+}
+
+/* Legend */
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.5rem;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+}
+
+.dot-tuesday { background: var(--tuesday); }
+.dot-thursday { background: var(--thursday); }
+.dot-friday { background: var(--friday); }
+.dot-sunday-morning { background: var(--sunday-morning); }
+.dot-sunday-evening { background: var(--sunday-evening); }
+.dot-special { background: var(--special); }
+
+/* Calendar Table */
+.calendar-table-wrapper {
+    overflow-x: auto;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    background: var(--bg-card);
+}
+
+/* Info note */
+.info-note {
+    display: flex;
+    gap: 0.8rem;
+    padding: 1rem 1.4rem;
+    background: var(--bg-card);
+    border-left: 4px solid var(--gold);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    align-items: center;
+}
+
+.info-note > i {
+    color: var(--gold);
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.info-note strong {
+    color: var(--text-primary);
+}
+
+.calendar-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.calendar-table thead {
+    background: linear-gradient(135deg, var(--bg-dark) 0%, #16213E 100%);
+    color: var(--text-white);
+}
+
+.calendar-table th {
+    padding: 1rem 1.2rem;
+    font-weight: 600;
+    text-align: left;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.calendar-table tbody tr {
+    border-bottom: 1px solid var(--border-light);
+    transition: var(--transition);
+}
+
+.calendar-table tbody tr:hover {
+    background: var(--primary-bg);
+}
+
+.calendar-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.calendar-table td {
+    padding: 0.9rem 1.2rem;
+    vertical-align: middle;
+}
+
+/* Row type colors */
+.calendar-table tr.row-tuesday {
+    border-left: 4px solid var(--tuesday);
+}
+
+.calendar-table tr.row-thursday {
+    border-left: 4px solid var(--thursday);
+}
+
+.calendar-table tr.row-friday {
+    border-left: 4px solid var(--friday);
+}
+
+.calendar-table tr.row-sunday-morning {
+    border-left: 4px solid var(--sunday-morning);
+}
+
+.calendar-table tr.row-sunday-evening {
+    border-left: 4px solid var(--sunday-evening);
+}
+
+.calendar-table tr.row-special {
+    border-left: 4px solid var(--special);
+    background: rgba(231, 76, 60, 0.04);
+}
+
+/* Date cell */
+.date-cell {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.day-cell {
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.time-cell {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.mass-type-cell {
+    font-size: 0.85rem;
+}
+
+.mass-type-badge {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.badge-tuesday {
+    background: rgba(52, 152, 219, 0.12);
+    color: var(--tuesday);
+}
+
+.badge-thursday {
+    background: rgba(155, 89, 182, 0.12);
+    color: var(--thursday);
+}
+
+.badge-friday {
+    background: rgba(230, 126, 34, 0.12);
+    color: var(--friday);
+}
+
+.badge-sunday-morning {
+    background: rgba(46, 204, 113, 0.12);
+    color: var(--sunday-morning);
+}
+
+.badge-sunday-evening {
+    background: rgba(26, 188, 156, 0.12);
+    color: var(--sunday-evening);
+}
+
+.badge-special {
+    background: rgba(231, 76, 60, 0.12);
+    color: var(--special);
+}
+
+/* Lector assignment cells */
+.lector-cell {
+    min-width: 160px;
+}
+
+.lector-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.8rem;
+    background: var(--primary-bg);
+    color: var(--primary);
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.lector-name:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.lector-empty {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.8rem;
+    background: rgba(178, 190, 195, 0.15);
+    color: var(--text-light);
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: var(--transition);
+    border: 2px dashed var(--border-medium);
+}
+
+.lector-empty:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-bg);
+}
+
+.lector-na {
+    color: var(--text-light);
+    font-style: italic;
+    font-size: 0.85rem;
+}
+
+/* ==========================================
+   LECTORS SECTION
+   ========================================== */
+.lectors-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+}
+
+.lectors-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.lectors-header h2 i {
+    color: var(--primary);
+}
+
+.lectors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.lector-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+    border: 1px solid var(--border-light);
+    position: relative;
+    overflow: hidden;
+}
+
+.lector-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+
+.lector-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+}
+
+.lector-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.lector-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.lector-card-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.lector-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 1.2rem;
+}
+
+.lector-card-info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.lector-card-info-item i {
+    width: 20px;
+    text-align: center;
+    color: var(--primary);
+}
+
+.lector-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-light);
+}
+
+.lector-card-actions .btn {
+    flex: 1;
+    font-size: 0.82rem;
+    padding: 0.5rem;
+}
+
+/* Empty state for lectors */
+.lectors-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-light);
+}
+
+.lectors-empty i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    color: var(--border-medium);
+}
+
+.lectors-empty h3 {
+    font-size: 1.3rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+/* ==========================================
+   REMINDERS SECTION
+   ========================================== */
+.reminders-section {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.reminders-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.reminders-section h2 i {
+    color: var(--primary);
+}
+
+.reminders-description {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.reminders-settings {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.setting-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-md);
+    text-align: center;
+    border: 1px solid var(--border-light);
+    transition: var(--transition);
+}
+
+.setting-card:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+.setting-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.8rem;
+}
+
+.setting-icon.whatsapp {
+    background: rgba(37, 211, 102, 0.12);
+    color: var(--whatsapp);
+}
+
+.setting-icon.email {
+    background: rgba(74, 144, 217, 0.12);
+    color: var(--email-blue);
+}
+
+.setting-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.setting-card p {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.2rem;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 56px;
+    height: 30px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-switch .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--border-medium);
+    border-radius: 30px;
+    transition: var(--transition);
+}
+
+.toggle-switch .slider::before {
+    content: '';
+    position: absolute;
+    height: 24px;
+    width: 24px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+
+.toggle-switch input:checked + .slider {
+    background: var(--success);
+}
+
+.toggle-switch input:checked + .slider::before {
+    transform: translateX(26px);
+}
+
+/* Upcoming reminders */
+.upcoming-reminders {
+    margin-bottom: 3rem;
+}
+
+.upcoming-reminders h3 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.upcoming-reminders h3 i {
+    color: var(--warning);
+}
+
+.reminders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.reminder-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-light);
+    transition: var(--transition);
+}
+
+.reminder-item:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.reminder-date-badge {
+    min-width: 60px;
+    text-align: center;
+    padding: 0.5rem;
+    background: var(--primary-bg);
+    border-radius: var(--radius-sm);
+}
+
+.reminder-date-badge .day-num {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+}
+
+.reminder-date-badge .day-name {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.reminder-info {
+    flex: 1;
+}
+
+.reminder-info .reminder-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.reminder-info .reminder-detail {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.reminder-channels {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.reminder-channel {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+}
+
+.reminder-channel.whatsapp {
+    background: rgba(37, 211, 102, 0.12);
+    color: var(--whatsapp);
+}
+
+.reminder-channel.email {
+    background: rgba(74, 144, 217, 0.12);
+    color: var(--email-blue);
+}
+
+/* Send reminders section */
+.send-reminders-section {
+    text-align: center;
+    padding: 2.5rem;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-light);
+}
+
+.send-reminders-section h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.send-reminders-section h3 i {
+    color: var(--primary);
+}
+
+.send-reminders-section p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+/* ==========================================
+   BUTTONS
+   ========================================== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.4rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: var(--text-white);
+    box-shadow: 0 4px 15px rgba(108, 71, 255, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(108, 71, 255, 0.4);
+}
+
+.btn-secondary {
+    background: var(--bg-main);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-medium);
+}
+
+.btn-secondary:hover {
+    background: var(--border-light);
+}
+
+.btn-danger {
+    background: rgba(231, 76, 60, 0.1);
+    color: var(--danger);
+}
+
+.btn-danger:hover {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-large {
+    padding: 1rem 2.5rem;
+    font-size: 1rem;
+}
+
+/* ==========================================
+   MODALS
+   ========================================== */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.modal-overlay.show {
+    display: flex;
+    animation: fadeIn 0.2s ease;
+}
+
+.modal {
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    width: 100%;
+    max-width: 480px;
+    box-shadow: var(--shadow-xl);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.modal-header h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.modal-close {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: var(--bg-main);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.modal-close:hover {
+    background: var(--danger);
+    color: white;
+}
+
+.modal form {
+    padding: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.form-group label i {
+    color: var(--primary);
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: var(--transition);
+    background: var(--bg-main);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(108, 71, 255, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    gap: 0.8rem;
+    justify-content: flex-end;
+    padding-top: 0.5rem;
+}
+
+/* ==========================================
+   TOAST NOTIFICATION
+   ========================================== */
+.toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--bg-dark);
+    color: var(--text-white);
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    box-shadow: var(--shadow-xl);
+    transform: translateY(120%);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2000;
+}
+
+.toast.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.toast i {
+    color: var(--success);
+    font-size: 1.2rem;
+}
+
+/* ==========================================
+   FOOTER
+   ========================================== */
+.main-footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-light);
+    font-size: 0.85rem;
+    margin-top: 2rem;
+}
+
+/* ==========================================
+   ADMIN FAB BUTTON
+   ========================================== */
+.admin-fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, var(--bg-dark) 0%, #16213E 100%);
+    color: var(--text-white);
+    font-size: 1.3rem;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    z-index: 90;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+}
+
+.admin-fab:active {
+    transform: scale(0.95);
+}
+
+/* ==========================================
+   ADMIN LOGIN MODAL
+   ========================================== */
+.admin-login-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    padding: 1rem;
+}
+
+.admin-login-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.admin-login-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    max-width: 400px;
+    width: 100%;
+    overflow: hidden;
+    transform: translateY(30px) scale(0.95);
+    transition: transform 0.3s ease;
+}
+
+.admin-login-overlay.show .admin-login-card {
+    transform: translateY(0) scale(1);
+}
+
+.admin-login-header {
+    background: linear-gradient(135deg, var(--bg-dark) 0%, #16213E 50%, #0F3460 100%);
+    color: var(--text-white);
+    padding: 2rem;
+    text-align: center;
+}
+
+.admin-login-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+}
+
+.admin-login-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    margin-bottom: 0.3rem;
+}
+
+.admin-login-header p {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.admin-login-card form {
+    padding: 1.5rem 2rem 2rem;
+}
+
+.admin-login-error {
+    background: #FDE8E8;
+    color: var(--danger);
+    padding: 0.7rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-login-error.shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+}
+
+/* ==========================================
+   ADMIN PANEL
+   ========================================== */
+.admin-panel-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: flex-end;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.admin-panel-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.admin-panel {
+    width: 100%;
+    max-width: 680px;
+    background: var(--bg-main);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-shadow: -8px 0 40px rgba(0,0,0,0.2);
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-panel-overlay.show .admin-panel {
+    transform: translateX(0);
+}
+
+.admin-panel-header {
+    background: linear-gradient(135deg, var(--bg-dark) 0%, #16213E 50%, #0F3460 100%);
+    color: var(--text-white);
+    padding: 1.2rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.admin-panel-title {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.admin-panel-title i {
+    font-size: 1.3rem;
+    opacity: 0.8;
+}
+
+.admin-panel-title h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.admin-panel-close {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.1);
+    color: var(--text-white);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-panel-close:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+.admin-panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+.admin-panel-body .reminders-section {
+    background: transparent;
+    padding: 0;
+}
+
+.admin-logout-section {
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-light);
+    flex-shrink: 0;
+}
+
+.admin-logout-section .btn-large {
+    width: 100%;
+    justify-content: center;
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+
+/* Touch-friendly defaults */
+@media (hover: none) and (pointer: coarse) {
+    .lector-empty,
+    .lector-name,
+    .nav-btn,
+    .month-nav-btn,
+    .admin-fab,
+    .btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .lector-empty,
+    .lector-name {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* Disable hover effects on touch */
+    .lector-card:hover {
+        transform: none;
+    }
+
+    .calendar-table tbody tr:hover {
+        background: inherit;
+    }
+}
+
+/* Safe area for notched phones */
+@supports (padding: env(safe-area-inset-bottom)) {
+    .main-footer {
+        padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+    }
+
+    .modal-overlay {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .toast {
+        bottom: calc(1.5rem + env(safe-area-inset-bottom));
+    }
+}
+
+/* Tablet & Mobile */
+@media (max-width: 768px) {
+    html {
+        font-size: 15px;
+    }
+
+    .header-content {
+        flex-direction: column;
+        padding: 0.8rem 1rem;
+        gap: 0.8rem;
+    }
+
+    .logo {
+        gap: 0.8rem;
+    }
+
+    .logo i {
+        font-size: 1.6rem;
+    }
+
+    .logo h1 {
+        font-size: 1.4rem;
+    }
+
+    .logo .subtitle {
+        font-size: 0.7rem;
+    }
+
+    .main-nav {
+        width: 100%;
+        justify-content: center;
+        gap: 0.3rem;
+    }
+
+    .nav-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+        flex: 1;
+        justify-content: center;
+    }
+
+    .nav-btn span {
+        display: none;
+    }
+
+    .nav-btn i {
+        font-size: 1.1rem;
+    }
+
+    .tab-content {
+        padding: 1rem;
+    }
+
+    /* Calendar */
+    .calendar-header {
+        gap: 0.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .month-title {
+        font-size: 1.3rem;
+        min-width: auto;
+    }
+
+    .month-nav-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 0.95rem;
+    }
+
+    .legend {
+        gap: 0.5rem;
+        padding: 0.7rem;
+        margin-bottom: 1rem;
+    }
+
+    .legend-item {
+        font-size: 0.72rem;
+        gap: 0.3rem;
+    }
+
+    .legend-dot {
+        width: 10px;
+        height: 10px;
+    }
+
+    .info-note {
+        font-size: 0.82rem;
+        padding: 0.8rem 1rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Calendar Table - card layout on mobile */
+    .calendar-table-wrapper {
+        border-radius: var(--radius-md);
+        box-shadow: none;
+        background: transparent;
+        overflow: visible;
+    }
+
+    .calendar-table {
+        display: block;
+        font-size: 0.88rem;
+    }
+
+    .calendar-table thead {
+        display: none;
+    }
+
+    .calendar-table tbody {
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+    }
+
+    .calendar-table tbody tr {
+        display: flex;
+        flex-wrap: wrap;
+        background: var(--bg-card);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+        padding: 0.9rem;
+        border-bottom: none;
+        border-left: 4px solid var(--border-light);
+        gap: 0.4rem 0.8rem;
+        align-items: center;
+        position: relative;
+    }
+
+    .calendar-table tbody tr:hover {
+        background: var(--bg-card);
+    }
+
+    .calendar-table tr.row-tuesday { border-left-color: var(--tuesday); }
+    .calendar-table tr.row-thursday { border-left-color: var(--thursday); }
+    .calendar-table tr.row-friday { border-left-color: var(--friday); }
+    .calendar-table tr.row-sunday-morning { border-left-color: var(--sunday-morning); }
+    .calendar-table tr.row-sunday-evening { border-left-color: var(--sunday-evening); }
+    .calendar-table tr.row-special { border-left-color: var(--special); }
+
+    .calendar-table td {
+        padding: 0;
+        border: none;
+    }
+
+    /* Date + Day + Time in a row */
+    .calendar-table td.date-cell {
+        font-size: 1.1rem;
+        font-weight: 800;
+        order: 1;
+    }
+
+    .calendar-table td.day-cell {
+        order: 2;
+        font-size: 0.88rem;
+        color: var(--text-secondary);
+    }
+
+    .calendar-table td.time-cell {
+        order: 3;
+        font-size: 0.88rem;
+        color: var(--text-secondary);
+        margin-left: auto;
+    }
+
+    /* Mass type badge - full width */
+    .calendar-table td.mass-type-cell {
+        order: 4;
+        width: 100%;
+        margin-top: 0.2rem;
+    }
+
+    .mass-type-badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.6rem;
+    }
+
+    /* Readings */
+    .calendar-table td.lector-cell {
+        order: 5;
+        min-width: 0;
+        flex: 1;
+        min-width: 45%;
+    }
+
+    .calendar-table td.lector-cell::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-light);
+        font-weight: 600;
+        margin-bottom: 0.2rem;
+    }
+
+    .lector-name {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.6rem;
+    }
+
+    .lector-empty {
+        font-size: 0.78rem;
+        padding: 0.25rem 0.6rem;
+    }
+
+    /* Lectors tab */
+    .lectors-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .lectors-header h2 {
+        font-size: 1.4rem;
+        justify-content: center;
+    }
+
+    .lectors-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .lector-card {
+        padding: 1.2rem;
+    }
+
+    .lector-card:hover {
+        transform: none;
+    }
+
+    .lector-avatar {
+        width: 44px;
+        height: 44px;
+        font-size: 1.1rem;
+    }
+
+    .lector-card-name {
+        font-size: 1rem;
+    }
+
+    .lector-card-info-item {
+        font-size: 0.85rem;
+    }
+
+    .lector-card-info-item span {
+        word-break: break-all;
+    }
+
+    /* Reminders */
+    .reminders-section h2 {
+        font-size: 1.4rem;
+    }
+
+    .reminders-description {
+        font-size: 0.9rem;
+    }
+
+    .reminders-settings {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .setting-card {
+        padding: 1.5rem;
+    }
+
+    .setting-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.4rem;
+    }
+
+    .reminder-item {
+        padding: 0.8rem 1rem;
+        gap: 0.8rem;
+    }
+
+    .reminder-date-badge {
+        min-width: 48px;
+        padding: 0.4rem;
+    }
+
+    .reminder-date-badge .day-num {
+        font-size: 1.2rem;
+    }
+
+    .reminder-info .reminder-title {
+        font-size: 0.88rem;
+    }
+
+    .reminder-info .reminder-detail {
+        font-size: 0.78rem;
+    }
+
+    /* Scheduler */
+    .scheduler-hero {
+        padding: 1.2rem;
+    }
+
+    .scheduler-hero-header {
+        flex-wrap: wrap;
+        gap: 0.8rem;
+    }
+
+    .scheduler-hero-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 1.2rem;
+    }
+
+    .scheduler-hero-header h3 {
+        font-size: 1.1rem;
+    }
+
+    .scheduler-times {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+    }
+
+    .time-setting {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.6rem;
+        padding: 0.8rem 1rem;
+    }
+
+    .scheduler-status-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.6rem;
+        padding: 0.7rem 0.8rem;
+    }
+
+    .scheduler-notif {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .scheduler-info-box {
+        font-size: 0.8rem;
+        padding: 0.8rem 1rem;
+    }
+
+    .send-reminders-section {
+        padding: 1.5rem;
+    }
+
+    .send-reminders-section h3 {
+        font-size: 1rem;
+    }
+
+    .btn-large {
+        padding: 0.8rem 1.5rem;
+        font-size: 0.9rem;
+        width: 100%;
+    }
+
+    /* EmailJS */
+    .emailjs-config-body {
+        padding: 1rem;
+    }
+
+    /* Scheduler log */
+    .log-entry {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.8rem;
+        gap: 0.5rem;
+    }
+
+    .log-time {
+        font-size: 0.7rem;
+        min-width: 70px;
+    }
+
+    /* Modal */
+    .modal-overlay {
+        padding: 0.5rem;
+        align-items: flex-end;
+    }
+
+    .modal {
+        max-width: 100%;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        padding: 1.2rem 1.5rem;
+        position: sticky;
+        top: 0;
+        background: var(--bg-card);
+        z-index: 10;
+    }
+
+    .modal form {
+        padding: 1.2rem 1.5rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Footer */
+    .main-footer {
+        padding: 1.5rem 1rem;
+        font-size: 0.78rem;
+    }
+
+    /* Toast */
+    .toast {
+        left: 1rem;
+        right: 1rem;
+        bottom: 1rem;
+        font-size: 0.88rem;
+    }
+
+    /* Admin FAB */
+    .admin-fab {
+        bottom: 1.2rem;
+        right: 1.2rem;
+        width: 50px;
+        height: 50px;
+        font-size: 1.1rem;
+    }
+
+    /* Admin Panel - fullscreen on mobile */
+    .admin-panel {
+        max-width: 100%;
+    }
+
+    .admin-panel-body {
+        padding: 1rem;
+    }
+
+    .admin-login-card form {
+        padding: 1.2rem 1.5rem 1.5rem;
+    }
+}
+
+/* Small phone */
+@media (max-width: 380px) {
+    html {
+        font-size: 14px;
+    }
+
+    .header-content {
+        padding: 0.6rem 0.8rem;
+    }
+
+    .nav-btn {
+        padding: 0.6rem 0.8rem;
+    }
+
+    .tab-content {
+        padding: 0.7rem;
+    }
+
+    .calendar-table tbody tr {
+        padding: 0.7rem;
+    }
+
+    .calendar-table td.lector-cell {
+        min-width: 100%;
+    }
+
+    .month-title {
+        font-size: 1.1rem;
+    }
+
+    .legend {
+        padding: 0.5rem;
+        gap: 0.4rem;
+    }
+
+    .legend-item {
+        font-size: 0.65rem;
+    }
+
+    .scheduler-hero {
+        padding: 1rem;
+    }
+
+    .reminder-item {
+        flex-wrap: wrap;
+    }
+
+    .modal-overlay {
+        padding: 0;
+    }
+}
+
+/* ==========================================
+   PRINT STYLES
+   ========================================== */
+@media print {
+    .main-header,
+    .main-footer,
+    .legend,
+    .admin-fab,
+    .calendar-table th:last-child {
+        display: none !important;
+    }
+
+    .tab-content {
+        display: block !important;
+        padding: 0;
+    }
+
+    .calendar-table {
+        box-shadow: none;
+        font-size: 0.85rem;
+    }
+
+    .calendar-table th,
+    .calendar-table td {
+        padding: 0.4rem 0.6rem;
+        border: 1px solid #ccc;
+    }
+}
+
+/* ==========================================
+   SCROLLBAR STYLING
+   ========================================== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-main);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-light);
+}
+
+/* ==========================================
+   EMPTY REMINDERS
+   ========================================== */
+.reminders-empty {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-light);
+}
+
+.reminders-empty i {
+    font-size: 2.5rem;
+    margin-bottom: 0.8rem;
+    display: block;
+}
+
+/* ==========================================
+   AUTO SCHEDULER HERO
+   ========================================== */
+.scheduler-hero {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-light);
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.scheduler-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--accent), var(--whatsapp));
+}
+
+.scheduler-hero-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.scheduler-hero-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.scheduler-hero-header > div:nth-child(2) {
+    flex: 1;
+}
+
+.scheduler-hero-header h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+}
+
+.scheduler-hero-header p {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+}
+
+.toggle-large {
+    width: 64px;
+    height: 34px;
+}
+
+.toggle-large .slider::before {
+    height: 28px;
+    width: 28px;
+}
+
+.toggle-large input:checked + .slider::before {
+    transform: translateX(30px);
+}
+
+/* Status bar */
+.scheduler-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.8rem 1rem;
+    background: var(--bg-main);
+    border-radius: var(--radius-sm);
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
+
+.scheduler-status {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-dot.status-active {
+    background: var(--success);
+    box-shadow: 0 0 8px rgba(46, 204, 113, 0.5);
+    animation: pulse-dot 2s infinite;
+}
+
+.status-dot.status-inactive {
+    background: var(--text-light);
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+.scheduler-notif {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.notif-status {
+    font-weight: 600;
+}
+
+.notif-status.notif-granted {
+    color: var(--success);
+}
+
+.notif-status.notif-denied {
+    color: var(--danger);
+}
+
+.notif-status.notif-default {
+    color: var(--warning);
+}
+
+.btn-sm {
+    padding: 0.35rem 0.8rem;
+    font-size: 0.78rem;
+}
+
+/* Time settings */
+.scheduler-times {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.time-setting {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.2rem;
+    background: var(--bg-main);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+}
+
+.time-setting-label {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.time-setting-label i {
+    font-size: 1.3rem;
+}
+
+.time-setting-label strong {
+    display: block;
+    font-size: 0.9rem;
+}
+
+.time-setting-label small {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+.time-input {
+    padding: 0.5rem 0.8rem;
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary);
+    background: white;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: 'Inter', monospace;
+    width: 100px;
+    text-align: center;
+}
+
+.time-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(108, 71, 255, 0.1);
+}
+
+/* Info box */
+.scheduler-info-box {
+    display: flex;
+    gap: 0.8rem;
+    padding: 1rem 1.2rem;
+    background: rgba(108, 71, 255, 0.06);
+    border-radius: var(--radius-sm);
+    border-left: 4px solid var(--primary);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.scheduler-info-box > i {
+    color: var(--primary);
+    font-size: 1.1rem;
+    margin-top: 0.15rem;
+    flex-shrink: 0;
+}
+
+.scheduler-info-box strong {
+    color: var(--text-primary);
+}
+
+/* ==========================================
+   EmailJS CONFIG
+   ========================================== */
+.emailjs-config {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-light);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.emailjs-config summary {
+    padding: 1.2rem 1.5rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    transition: var(--transition);
+    color: var(--text-secondary);
+    user-select: none;
+}
+
+.emailjs-config summary:hover {
+    background: var(--bg-main);
+    color: var(--text-primary);
+}
+
+.emailjs-config summary i {
+    color: var(--primary);
+}
+
+.emailjs-config[open] summary {
+    border-bottom: 1px solid var(--border-light);
+}
+
+.emailjs-config-body {
+    padding: 1.5rem;
+}
+
+.emailjs-info {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.emailjs-info a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.emailjs-info a:hover {
+    text-decoration: underline;
+}
+
+/* ==========================================
+   SCHEDULER LOG
+   ========================================== */
+.scheduler-log-section {
+    margin-top: 2rem;
+}
+
+.log-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.log-header h3 {
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.log-header h3 i {
+    color: var(--primary);
+}
+
+.scheduler-log {
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: var(--shadow-sm);
+}
+
+.log-entry {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.7rem 1.2rem;
+    font-size: 0.85rem;
+    border-bottom: 1px solid var(--border-light);
+    transition: var(--transition);
+}
+
+.log-entry:last-child {
+    border-bottom: none;
+}
+
+.log-entry:hover {
+    background: var(--bg-main);
+}
+
+.log-entry i {
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.log-time {
+    font-size: 0.78rem;
+    color: var(--text-light);
+    font-weight: 500;
+    min-width: 80px;
+    flex-shrink: 0;
+    font-family: monospace;
+}
+
+.log-message {
+    flex: 1;
+    color: var(--text-secondary);
+}
+
+.log-entry.log-success .log-message {
+    color: var(--success);
+}
+
+.log-entry.log-error .log-message {
+    color: var(--danger);
+}
+
+.log-entry.log-warning .log-message {
+    color: var(--warning);
+}
+
+.text-success { color: var(--success) !important; }
+.text-danger { color: var(--danger) !important; }
+.text-warning { color: var(--warning) !important; }
+.text-info { color: var(--primary) !important; }
+
+.log-empty {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-light);
+}
+
+.log-empty i {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+/* Responsive scheduler styles are included in main @media block above */

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Lektori – Rozpis čítaní</title>
+    <meta name="theme-color" content="#1A1A2E">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-church"></i>
+                <div>
+                    <h1>Lektori</h1>
+                    <p class="subtitle">Rozpis čítaní na sv. omšiach</p>
+                </div>
+            </div>
+            <nav class="main-nav">
+                <button class="nav-btn active" data-tab="calendar">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Kalendár</span>
+                </button>
+                <button class="nav-btn" data-tab="lectors">
+                    <i class="fas fa-users"></i>
+                    <span>Lektori</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Calendar Tab -->
+    <main id="tab-calendar" class="tab-content active">
+        <div class="calendar-header">
+            <button id="prevMonth" class="month-nav-btn">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <h2 id="currentMonthYear" class="month-title"></h2>
+            <button id="nextMonth" class="month-nav-btn">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <span class="legend-dot dot-tuesday"></span> Utorok 18:00
+            </div>
+            <div class="legend-item">
+                <span class="legend-dot dot-thursday"></span> Štvrtok 18:00
+            </div>
+            <div class="legend-item">
+                <span class="legend-dot dot-friday"></span> Piatok 18:00 (1. piatok)
+            </div>
+            <div class="legend-item">
+                <span class="legend-dot dot-sunday-morning"></span> Nedeľa 9:00
+            </div>
+            <div class="legend-item">
+                <span class="legend-dot dot-sunday-evening"></span> Nedeľa 18:00
+            </div>
+            <div class="legend-item">
+                <span class="legend-dot dot-special"></span> Sviatky
+            </div>
+        </div>
+
+        <div class="info-note">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>Prosby:</strong> Prosby číta ten, kto číta 1. čítanie. Prípadne sa pred sv. omšou dohodne s ministrantom, ak je prítomný.
+            </div>
+        </div>
+
+        <div class="calendar-table-wrapper">
+            <table class="calendar-table" id="calendarTable">
+                <thead>
+                    <tr>
+                        <th>Dátum</th>
+                        <th>Deň</th>
+                        <th>Čas</th>
+                        <th>Typ omše</th>
+                        <th>1. čítanie</th>
+                        <th>2. čítanie</th>
+                    </tr>
+                </thead>
+                <tbody id="calendarBody">
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Lectors Tab -->
+    <main id="tab-lectors" class="tab-content">
+        <div class="lectors-header">
+            <h2><i class="fas fa-users"></i> Databáza lektorov</h2>
+            <button id="addLectorBtn" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Pridať lektora
+            </button>
+        </div>
+
+        <div class="lectors-grid" id="lectorsGrid">
+            <!-- Lector cards will be generated here -->
+        </div>
+    </main>
+
+    <!-- Admin FAB Button -->
+    <button id="adminFab" class="admin-fab" title="Admin portál">
+        <i class="fas fa-shield-alt"></i>
+    </button>
+
+    <!-- Admin Login Modal -->
+    <div class="admin-login-overlay" id="adminLoginOverlay">
+        <div class="admin-login-card">
+            <div class="admin-login-header">
+                <div class="admin-login-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h3>Admin portál</h3>
+                <p>Prihláste sa pre prístup k nastaveniam</p>
+            </div>
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label for="adminLogin"><i class="fas fa-user"></i> Prihlasovacie meno</label>
+                    <input type="text" id="adminLogin" placeholder="Zadajte login" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="adminPassword"><i class="fas fa-key"></i> Heslo</label>
+                    <input type="password" id="adminPassword" placeholder="Zadajte heslo" required autocomplete="current-password">
+                </div>
+                <div id="adminLoginError" class="admin-login-error" style="display:none;">
+                    <i class="fas fa-exclamation-triangle"></i> Nesprávne prihlasovacie údaje
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelAdminLogin">Zrušiť</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Prihlásiť
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Portal Panel -->
+    <div class="admin-panel-overlay" id="adminPanelOverlay">
+        <div class="admin-panel">
+            <div class="admin-panel-header">
+                <div class="admin-panel-title">
+                    <i class="fas fa-shield-alt"></i>
+                    <h2>Admin portál</h2>
+                </div>
+                <button class="admin-panel-close" id="closeAdminPanel">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="admin-panel-body">
+                <div class="reminders-section">
+                    <h2><i class="fas fa-bell"></i> Systém pripomienok</h2>
+                    <p class="reminders-description">
+                        Systém automaticky pripomenie lektorom deň pred sv. omšou, že majú čítanie.
+                        Pripomienky sa posielajú cez <strong>WhatsApp</strong> a <strong>Email</strong>.
+                    </p>
+
+                    <!-- ===== AUTO SCHEDULER SECTION ===== -->
+                    <div class="scheduler-hero">
+                        <div class="scheduler-hero-header">
+                            <div class="scheduler-hero-icon">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div>
+                                <h3>Automatický plánovač</h3>
+                                <p>Automatické odosielanie pripomienok podľa rozvrhu</p>
+                            </div>
+                            <label class="toggle-switch toggle-large">
+                                <input type="checkbox" id="autoSchedulerEnabled">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="scheduler-status-bar">
+                            <div class="scheduler-status">
+                                <span id="schedulerStatusIndicator" class="status-dot status-inactive"></span>
+                                <span id="schedulerStatusText">Neaktívny</span>
+                            </div>
+                            <div class="scheduler-notif">
+                                <span>Notifikácie: <span id="notifPermStatus" class="notif-status notif-default">Nepovolené</span></span>
+                                <button id="requestNotifPermBtn" class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-bell"></i> Povoliť
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="scheduler-times">
+                            <div class="time-setting">
+                                <div class="time-setting-label">
+                                    <i class="fas fa-sun" style="color: var(--sunday-morning)"></i>
+                                    <div>
+                                        <strong>Nedeľné omše</strong>
+                                        <small>Pripomienka v sobotu</small>
+                                    </div>
+                                </div>
+                                <input type="time" id="sundayReminderTime" value="18:00" class="time-input">
+                            </div>
+                            <div class="time-setting">
+                                <div class="time-setting-label">
+                                    <i class="fas fa-calendar-week" style="color: var(--tuesday)"></i>
+                                    <div>
+                                        <strong>Týždenné omše</strong>
+                                        <small>Pripomienka deň pred (Ut, Št, Pi)</small>
+                                    </div>
+                                </div>
+                                <input type="time" id="weekdayReminderTime" value="13:00" class="time-input">
+                            </div>
+                        </div>
+
+                        <div class="scheduler-info-box">
+                            <i class="fas fa-info-circle"></i>
+                            <div>
+                                <strong>Ako to funguje:</strong> Stránka musí byť otvorená v prehliadači.
+                                Plánovač kontroluje čas každú minútu. Keď nastane čas pripomienky,
+                                automaticky otvorí WhatsApp pre každého lektora a odošle email.
+                                Každá pripomienka sa odošle iba raz (duplikáty sa neopakujú).
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== CHANNELS ===== -->
+                    <div class="reminders-settings">
+                        <div class="setting-card">
+                            <div class="setting-icon whatsapp">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                            <h3>WhatsApp pripomienky</h3>
+                            <p>Automatické otvorenie WhatsApp s predvyplnenou správou</p>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="whatsappEnabled" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="setting-card">
+                            <div class="setting-icon email">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <h3>Email pripomienky</h3>
+                            <p>Automatické odoslanie emailu cez EmailJS</p>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="emailEnabled" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- ===== EmailJS CONFIG ===== -->
+                    <details class="emailjs-config">
+                        <summary>
+                            <i class="fas fa-cog"></i> Nastavenie EmailJS (pre automatické emaily)
+                        </summary>
+                        <div class="emailjs-config-body">
+                            <p class="emailjs-info">
+                                Pre automatické odosielanie emailov si vytvorte bezplatný účet na
+                                <a href="https://www.emailjs.com" target="_blank">emailjs.com</a>.
+                                Vytvorte si tam Service, Template a skopírujte ID sem.
+                            </p>
+                            <div class="form-group">
+                                <label for="emailjsServiceId"><i class="fas fa-server"></i> Service ID</label>
+                                <input type="text" id="emailjsServiceId" placeholder="napr. service_abc123">
+                            </div>
+                            <div class="form-group">
+                                <label for="emailjsTemplateId"><i class="fas fa-file-alt"></i> Template ID</label>
+                                <input type="text" id="emailjsTemplateId" placeholder="napr. template_xyz789">
+                            </div>
+                            <div class="form-group">
+                                <label for="emailjsPublicKey"><i class="fas fa-key"></i> Public Key</label>
+                                <input type="text" id="emailjsPublicKey" placeholder="napr. user_abc123xyz">
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- ===== UPCOMING REMINDERS ===== -->
+                    <div class="upcoming-reminders">
+                        <h3><i class="fas fa-clock"></i> Nadchádzajúce pripomienky</h3>
+                        <div id="upcomingRemindersList" class="reminders-list">
+                            <!-- Generated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- ===== MANUAL SEND ===== -->
+                    <div class="send-reminders-section">
+                        <h3><i class="fas fa-paper-plane"></i> Manuálne odoslanie pripomienok</h3>
+                        <p>Odošlite pripomienky pre zajtrajšie omše manuálne.</p>
+                        <button id="sendRemindersBtn" class="btn btn-primary btn-large">
+                            <i class="fas fa-paper-plane"></i> Odoslať pripomienky teraz
+                        </button>
+                    </div>
+
+                    <!-- ===== SCHEDULER LOG ===== -->
+                    <div class="scheduler-log-section">
+                        <div class="log-header">
+                            <h3><i class="fas fa-clipboard-list"></i> Záznamy plánovača</h3>
+                            <button id="clearLogBtn" class="btn btn-sm btn-secondary">
+                                <i class="fas fa-trash"></i> Vyčistiť
+                            </button>
+                        </div>
+                        <div id="schedulerLog" class="scheduler-log">
+                            <div class="log-empty"><i class="fas fa-clipboard-list"></i><p>Zatiaľ žiadne záznamy</p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-logout-section">
+                    <button id="adminLogoutBtn" class="btn btn-secondary btn-large">
+                        <i class="fas fa-sign-out-alt"></i> Odhlásiť sa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for adding/editing lector -->
+    <div class="modal-overlay" id="lectorModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Pridať lektora</h3>
+                <button class="modal-close" id="closeLectorModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="lectorForm">
+                <input type="hidden" id="lectorId">
+                <div class="form-group">
+                    <label for="lectorName"><i class="fas fa-user"></i> Meno a priezvisko</label>
+                    <input type="text" id="lectorName" placeholder="Napr. Ján Novák" required>
+                </div>
+                <div class="form-group">
+                    <label for="lectorPhone"><i class="fas fa-phone"></i> Telefónne číslo</label>
+                    <input type="tel" id="lectorPhone" placeholder="Napr. +421 900 123 456" required>
+                </div>
+                <div class="form-group">
+                    <label for="lectorEmail"><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="lectorEmail" placeholder="Napr. jan.novak@email.com" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelLectorBtn">Zrušiť</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Uložiť
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for assigning lector to reading -->
+    <div class="modal-overlay" id="assignModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="assignModalTitle">Priradiť lektora</h3>
+                <button class="modal-close" id="closeAssignModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="assignForm">
+                <input type="hidden" id="assignDate">
+                <input type="hidden" id="assignTime">
+                <input type="hidden" id="assignReading">
+                <div class="form-group">
+                    <label for="assignLector"><i class="fas fa-user"></i> Vybrať lektora</label>
+                    <select id="assignLector" required>
+                        <option value="">-- Vyberte lektora --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="assignCustomName"><i class="fas fa-pen"></i> Alebo zadajte meno ručne</label>
+                    <input type="text" id="assignCustomName" placeholder="Zadajte meno...">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-danger" id="removeAssignBtn" style="display:none;">
+                        <i class="fas fa-trash"></i> Odstrániť
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="cancelAssignBtn">Zrušiť</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check"></i> Priradiť
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage"></span>
+    </div>
+
+    <footer class="main-footer">
+        <p>&copy; 2026 Lektori – Rozpis čítaní na sv. omšiach</p>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
