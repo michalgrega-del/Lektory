@@ -161,6 +161,69 @@
             </div>
 
             <div class="admin-panel-body">
+                <!-- ===== SCHEDULE EDITOR ===== -->
+                <div class="schedule-editor-section">
+                    <h2><i class="fas fa-calendar-edit"></i> Správa rozvrhu omší</h2>
+                    <p class="reminders-description">
+                        Upravte rozvrh sv. omší pre konkrétny mesiac. Môžete pridať nové omše,
+                        odstrániť existujúce alebo zmeniť čas a počet čítaní.
+                    </p>
+
+                    <div class="schedule-month-picker">
+                        <button id="schedPrevMonth" class="month-nav-btn">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <h3 id="schedMonthYear" class="month-title"></h3>
+                        <button id="schedNextMonth" class="month-nav-btn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+
+                    <!-- Add custom mass -->
+                    <details class="add-mass-details">
+                        <summary class="btn btn-primary btn-add-mass">
+                            <i class="fas fa-plus"></i> Pridať novú omšu
+                        </summary>
+                        <div class="add-mass-form">
+                            <div class="add-mass-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-calendar-day"></i> Dátum</label>
+                                    <input type="date" id="newMassDate">
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-clock"></i> Čas</label>
+                                    <input type="time" id="newMassTime" value="18:00">
+                                </div>
+                            </div>
+                            <div class="add-mass-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-church"></i> Názov / typ</label>
+                                    <input type="text" id="newMassName" placeholder="Napr. Sv. omša za farnosť">
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-book-open"></i> Počet čítaní</label>
+                                    <select id="newMassReadings">
+                                        <option value="1">1 čítanie</option>
+                                        <option value="2" selected>2 čítania</option>
+                                        <option value="3">3 čítania</option>
+                                        <option value="7">7 čítaní (Vigília)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button id="addCustomMassBtn" class="btn btn-primary">
+                                <i class="fas fa-check"></i> Pridať omšu
+                            </button>
+                        </div>
+                    </details>
+
+                    <!-- Schedule list -->
+                    <div id="scheduleEditorList" class="schedule-editor-list">
+                        <!-- Generated dynamically -->
+                    </div>
+                </div>
+
+                <hr class="admin-divider">
+
                 <div class="reminders-section">
                     <h2><i class="fas fa-bell"></i> Systém pripomienok</h2>
                     <p class="reminders-description">

@@ -1322,6 +1322,228 @@ body {
     justify-content: center;
 }
 
+.admin-divider {
+    border: none;
+    border-top: 1px solid var(--border-light);
+    margin: 2rem 0;
+}
+
+/* ==========================================
+   SCHEDULE EDITOR
+   ========================================== */
+.schedule-editor-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.schedule-month-picker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    padding: 0.8rem;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.schedule-month-picker .month-title {
+    font-size: 1.2rem;
+    min-width: 180px;
+    text-align: center;
+}
+
+/* Add mass form */
+.add-mass-details {
+    margin-bottom: 1.5rem;
+}
+
+.add-mass-details summary {
+    list-style: none;
+    cursor: pointer;
+}
+
+.add-mass-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.btn-add-mass {
+    width: 100%;
+    justify-content: center;
+}
+
+.add-mass-form {
+    background: var(--bg-card);
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    padding: 1.2rem;
+    border: 1px solid var(--border-light);
+    border-top: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.add-mass-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+}
+
+.add-mass-form .btn {
+    align-self: flex-end;
+}
+
+/* Schedule list */
+.schedule-editor-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.sched-date-group {
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.sched-date-header {
+    background: var(--bg-dark);
+    color: var(--text-white);
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.sched-date-num {
+    font-weight: 800;
+}
+
+.sched-date-day {
+    opacity: 0.7;
+    font-weight: 400;
+}
+
+.sched-mass-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--border-light);
+    gap: 0.5rem;
+    transition: var(--transition);
+}
+
+.sched-mass-item:last-child {
+    border-bottom: none;
+}
+
+.sched-mass-item:hover {
+    background: rgba(108, 71, 255, 0.03);
+}
+
+.sched-mass-info {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex: 1;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.sched-mass-time {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--primary);
+    min-width: 45px;
+}
+
+.sched-mass-name {
+    font-size: 0.88rem;
+    color: var(--text-primary);
+}
+
+.sched-mass-readings {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.sched-badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.sched-badge-custom {
+    background: rgba(78, 205, 196, 0.15);
+    color: var(--accent);
+}
+
+.sched-badge-removed {
+    background: rgba(231, 76, 60, 0.12);
+    color: var(--danger);
+}
+
+.sched-badge-edited {
+    background: rgba(243, 156, 18, 0.12);
+    color: var(--warning);
+}
+
+.sched-mass-actions {
+    display: flex;
+    gap: 0.3rem;
+    flex-shrink: 0;
+}
+
+/* Removed mass styling */
+.sched-removed .sched-mass-info {
+    opacity: 0.4;
+    text-decoration: line-through;
+}
+
+.sched-removed .sched-badge {
+    opacity: 1;
+    text-decoration: none;
+}
+
+/* Custom mass highlight */
+.sched-custom {
+    background: rgba(78, 205, 196, 0.04);
+    border-left: 3px solid var(--accent);
+}
+
+/* Edited mass highlight */
+.sched-edited {
+    border-left: 3px solid var(--warning);
+}
+
+.sched-empty {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-light);
+}
+
+.sched-empty i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
 /* ==========================================
    RESPONSIVE
    ========================================== */
@@ -1813,6 +2035,27 @@ body {
 
     .admin-login-card form {
         padding: 1.2rem 1.5rem 1.5rem;
+    }
+
+    /* Schedule editor */
+    .schedule-editor-section h2 {
+        font-size: 1.3rem;
+    }
+
+    .add-mass-row {
+        grid-template-columns: 1fr;
+    }
+
+    .sched-mass-info {
+        gap: 0.4rem;
+    }
+
+    .sched-mass-time {
+        font-size: 0.88rem;
+    }
+
+    .sched-mass-name {
+        font-size: 0.82rem;
     }
 }
 

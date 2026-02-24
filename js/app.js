@@ -12,6 +12,7 @@ const DataManager = {
     SETTINGS_KEY: 'lektori_settings',
     SENT_REMINDERS_KEY: 'lektori_sent_reminders',
     SCHEDULER_LOG_KEY: 'lektori_scheduler_log',
+    CUSTOM_SCHEDULE_KEY: 'lektori_custom_schedule',
 
     // Lectors CRUD
     getLectors() {
@@ -140,6 +141,70 @@ const DataManager = {
     getSchedulerLogs() {
         const data = localStorage.getItem(this.SCHEDULER_LOG_KEY);
         return data ? JSON.parse(data) : [];
+    },
+
+    // Custom schedule overrides per month
+    // Format: { "2026-03": { added: [...], removed: ["dateStr_time"], edited: { "dateStr_time": {...} } } }
+    getCustomSchedule(year, month) {
+        const data = localStorage.getItem(this.CUSTOM_SCHEDULE_KEY);
+        const all = data ? JSON.parse(data) : {};
+        const key = `${year}-${String(month + 1).padStart(2, '0')}`;
+        return all[key] || { added: [], removed: [], edited: {} };
+    },
+
+    saveCustomSchedule(year, month, schedule) {
+        const data = localStorage.getItem(this.CUSTOM_SCHEDULE_KEY);
+        const all = data ? JSON.parse(data) : {};
+        const key = `${year}-${String(month + 1).padStart(2, '0')}`;
+        all[key] = schedule;
+        localStorage.setItem(this.CUSTOM_SCHEDULE_KEY, JSON.stringify(all));
+    },
+
+    addCustomMass(year, month, mass) {
+        const schedule = this.getCustomSchedule(year, month);
+        mass.id = Date.now().toString();
+        schedule.added.push(mass);
+        this.saveCustomSchedule(year, month, schedule);
+        return mass;
+    },
+
+    removeCustomMass(year, month, massId) {
+        const schedule = this.getCustomSchedule(year, month);
+        schedule.added = schedule.added.filter(m => m.id !== massId);
+        this.saveCustomSchedule(year, month, schedule);
+    },
+
+    toggleRemoveBaseMass(year, month, dateStr, time) {
+        const schedule = this.getCustomSchedule(year, month);
+        const key = `${dateStr}_${time}`;
+        const idx = schedule.removed.indexOf(key);
+        if (idx === -1) {
+            schedule.removed.push(key);
+        } else {
+            schedule.removed.splice(idx, 1);
+        }
+        this.saveCustomSchedule(year, month, schedule);
+    },
+
+    editBaseMass(year, month, dateStr, time, edits) {
+        const schedule = this.getCustomSchedule(year, month);
+        const key = `${dateStr}_${time}`;
+        if (edits === null) {
+            delete schedule.edited[key];
+        } else {
+            schedule.edited[key] = edits;
+        }
+        this.saveCustomSchedule(year, month, schedule);
+    },
+
+    isBaseMassRemoved(year, month, dateStr, time) {
+        const schedule = this.getCustomSchedule(year, month);
+        return schedule.removed.includes(`${dateStr}_${time}`);
+    },
+
+    getBaseMassEdits(year, month, dateStr, time) {
+        const schedule = this.getCustomSchedule(year, month);
+        return schedule.edited[`${dateStr}_${time}`] || null;
     }
 };
 
@@ -396,7 +461,111 @@ const CalendarLogic = {
             }
         }
 
+        // Apply custom overrides
+        return this.applyCustomOverrides(schedule, year, month);
+    },
+
+    // Generate base schedule WITHOUT custom overrides (for the schedule editor)
+    generateBaseSchedule(year, month) {
+        const schedule = [];
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const firstFriday = this.getFirstFriday(year, month);
+        const thursdayBeforeFirstFriday = firstFriday - 1;
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            const dayOfWeek = date.getDay();
+            const dateStr = this.formatDate(year, month, day);
+
+            if (this.specialDates[dateStr]) {
+                const special = this.specialDates[dateStr];
+                if (special.type === 'easter-sunday') {
+                    schedule.push({ date: dateStr, day, dayName: this.dayNames[dayOfWeek], time: '9:00', type: 'special', typeName: 'Veľkonočná nedeľa', readings: 2, cssClass: 'row-special', badgeClass: 'badge-special', isSpecial: true });
+                    schedule.push({ date: dateStr, day, dayName: this.dayNames[dayOfWeek], time: '18:00', type: 'special', typeName: 'Veľkonočná nedeľa', readings: 2, cssClass: 'row-special', badgeClass: 'badge-special', isSpecial: true });
+                } else if (special.time) {
+                    schedule.push({ date: dateStr, day, dayName: this.dayNames[dayOfWeek], time: special.time, type: 'special', typeName: special.name, readings: special.readings || 1, cssClass: 'row-special', badgeClass: 'badge-special', isSpecial: true });
+                }
+                continue;
+            }
+
+            switch (dayOfWeek) {
+                case 0:
+                    schedule.push({ date: dateStr, day, dayName: 'Nedeľa', time: '9:00', type: 'sunday-morning', typeName: 'Nedeľná omša', readings: 2, cssClass: 'row-sunday-morning', badgeClass: 'badge-sunday-morning' });
+                    schedule.push({ date: dateStr, day, dayName: 'Nedeľa', time: '18:00', type: 'sunday-evening', typeName: 'Nedeľná omša', readings: 2, cssClass: 'row-sunday-evening', badgeClass: 'badge-sunday-evening' });
+                    break;
+                case 2:
+                    schedule.push({ date: dateStr, day, dayName: 'Utorok', time: '18:00', type: 'tuesday', typeName: 'Sv. omša', readings: 1, cssClass: 'row-tuesday', badgeClass: 'badge-tuesday' });
+                    break;
+                case 4:
+                    if (day === thursdayBeforeFirstFriday) {
+                        const fridayDateStr = this.formatDate(year, month, firstFriday);
+                        if (this.specialDates[fridayDateStr]) {
+                            schedule.push({ date: dateStr, day, dayName: 'Štvrtok', time: '18:00', type: 'thursday', typeName: 'Sv. omša', readings: 1, cssClass: 'row-thursday', badgeClass: 'badge-thursday' });
+                        }
+                    } else {
+                        schedule.push({ date: dateStr, day, dayName: 'Štvrtok', time: '18:00', type: 'thursday', typeName: 'Sv. omša', readings: 1, cssClass: 'row-thursday', badgeClass: 'badge-thursday' });
+                    }
+                    break;
+                case 5:
+                    if (day === firstFriday && !this.specialDates[this.formatDate(year, month, firstFriday)]) {
+                        schedule.push({ date: dateStr, day, dayName: 'Piatok', time: '18:00', type: 'friday', typeName: '1. piatok – Sv. omša', readings: 2, cssClass: 'row-friday', badgeClass: 'badge-friday' });
+                    }
+                    break;
+            }
+        }
         return schedule;
+    },
+
+    applyCustomOverrides(schedule, year, month) {
+        const custom = DataManager.getCustomSchedule(year, month);
+
+        // Remove masses marked as removed
+        let filtered = schedule.filter(entry => {
+            const key = `${entry.date}_${entry.time}`;
+            return !custom.removed.includes(key);
+        });
+
+        // Apply edits to base masses
+        filtered = filtered.map(entry => {
+            const key = `${entry.date}_${entry.time}`;
+            const edits = custom.edited[key];
+            if (edits) {
+                return {
+                    ...entry,
+                    time: edits.time || entry.time,
+                    typeName: edits.typeName || entry.typeName,
+                    readings: edits.readings !== undefined ? edits.readings : entry.readings
+                };
+            }
+            return entry;
+        });
+
+        // Add custom masses
+        custom.added.forEach(mass => {
+            const dateObj = new Date(mass.date);
+            const dayOfWeek = dateObj.getDay();
+            filtered.push({
+                date: mass.date,
+                day: dateObj.getDate(),
+                dayName: this.dayNames[dayOfWeek],
+                time: mass.time,
+                type: 'custom',
+                typeName: mass.typeName || 'Sv. omša (vlastná)',
+                readings: mass.readings || 1,
+                cssClass: mass.cssClass || 'row-special',
+                badgeClass: mass.badgeClass || 'badge-special',
+                isCustom: true,
+                customId: mass.id
+            });
+        });
+
+        // Sort by date then time
+        filtered.sort((a, b) => {
+            if (a.date !== b.date) return a.date.localeCompare(b.date);
+            return a.time.localeCompare(b.time);
+        });
+
+        return filtered;
     }
 };
 
@@ -621,6 +790,8 @@ const UIController = {
     currentMonth: 2, // March (0-indexed)
     currentYear: 2026,
     adminLoggedIn: false,
+    schedMonth: 2,
+    schedYear: 2026,
 
     init() {
         this.bindEvents();
@@ -738,6 +909,19 @@ const UIController = {
         document.getElementById('adminPanelOverlay').addEventListener('click', (e) => {
             if (e.target === e.currentTarget) this.closeAdminPanel();
         });
+
+        // Schedule editor
+        document.getElementById('schedPrevMonth').addEventListener('click', () => {
+            this.schedMonth--;
+            if (this.schedMonth < 0) { this.schedMonth = 11; this.schedYear--; }
+            this.renderScheduleEditor();
+        });
+        document.getElementById('schedNextMonth').addEventListener('click', () => {
+            this.schedMonth++;
+            if (this.schedMonth > 11) { this.schedMonth = 0; this.schedYear++; }
+            this.renderScheduleEditor();
+        });
+        document.getElementById('addCustomMassBtn').addEventListener('click', () => this.addCustomMass());
     },
 
     switchTab(tab) {
@@ -1412,12 +1596,217 @@ const UIController = {
 
     openAdminPanel() {
         document.getElementById('adminPanelOverlay').classList.add('show');
+        // Sync schedule editor month with main calendar
+        this.schedMonth = this.currentMonth;
+        this.schedYear = this.currentYear;
+        this.renderScheduleEditor();
         this.renderReminders();
         this.renderSchedulerLog();
     },
 
     closeAdminPanel() {
         document.getElementById('adminPanelOverlay').classList.remove('show');
+    },
+
+    // ==========================================
+    // SCHEDULE EDITOR
+    // ==========================================
+    renderScheduleEditor() {
+        const monthYear = `${CalendarLogic.monthNames[this.schedMonth]} ${this.schedYear}`;
+        document.getElementById('schedMonthYear').textContent = monthYear;
+
+        // Set default date for new mass input to first day of selected month
+        const dateInput = document.getElementById('newMassDate');
+        const firstDay = `${this.schedYear}-${String(this.schedMonth + 1).padStart(2, '0')}-01`;
+        const lastDay = new Date(this.schedYear, this.schedMonth + 1, 0).getDate();
+        const lastDayStr = `${this.schedYear}-${String(this.schedMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+        dateInput.min = firstDay;
+        dateInput.max = lastDayStr;
+        if (!dateInput.value || dateInput.value < firstDay || dateInput.value > lastDayStr) {
+            dateInput.value = firstDay;
+        }
+
+        // Generate base schedule (without overrides) for showing what can be edited
+        const baseSchedule = CalendarLogic.generateBaseSchedule(this.schedYear, this.schedMonth);
+        const custom = DataManager.getCustomSchedule(this.schedYear, this.schedMonth);
+        const container = document.getElementById('scheduleEditorList');
+
+        let html = '';
+
+        // Group by date
+        const grouped = {};
+        baseSchedule.forEach(entry => {
+            if (!grouped[entry.date]) grouped[entry.date] = [];
+            grouped[entry.date].push(entry);
+        });
+
+        // Also group custom added masses
+        custom.added.forEach(mass => {
+            if (!grouped[mass.date]) grouped[mass.date] = [];
+            grouped[mass.date].push({ ...mass, isCustomAdded: true });
+        });
+
+        const sortedDates = Object.keys(grouped).sort();
+
+        if (sortedDates.length === 0) {
+            container.innerHTML = '<div class="sched-empty"><i class="fas fa-calendar-times"></i><p>\u017diadne om\u0161e v tomto mesiaci</p></div>';
+            return;
+        }
+
+        sortedDates.forEach(dateStr => {
+            const masses = grouped[dateStr].sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+            const [y, m, d] = dateStr.split('-');
+            const dateObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+            const dayName = CalendarLogic.dayNames[dateObj.getDay()];
+
+            html += `<div class="sched-date-group">`;
+            html += `<div class="sched-date-header"><span class="sched-date-num">${parseInt(d)}.</span> <span class="sched-date-day">${dayName}</span></div>`;
+
+            masses.forEach(mass => {
+                if (mass.isCustomAdded) {
+                    // Custom added mass
+                    html += `<div class="sched-mass-item sched-custom">`;
+                    html += `<div class="sched-mass-info">`;
+                    html += `<span class="sched-mass-time">${mass.time}</span>`;
+                    html += `<span class="sched-mass-name">${mass.typeName || 'Sv. om\u0161a'}</span>`;
+                    html += `<span class="sched-mass-readings"><i class="fas fa-book-open"></i> ${mass.readings || 1} \u010d\u00edt.</span>`;
+                    html += `<span class="sched-badge sched-badge-custom"><i class="fas fa-star"></i> Vlastn\u00e1</span>`;
+                    html += `</div>`;
+                    html += `<button class="btn btn-sm btn-danger sched-remove-custom" data-id="${mass.id}" title="Odstr\u00e1ni\u0165">`;
+                    html += `<i class="fas fa-trash"></i></button>`;
+                    html += `</div>`;
+                } else {
+                    // Base mass - can be removed or edited
+                    const key = `${mass.date}_${mass.time}`;
+                    const isRemoved = custom.removed.includes(key);
+                    const edits = custom.edited[key];
+                    const displayTime = edits && edits.time ? edits.time : mass.time;
+                    const displayName = edits && edits.typeName ? edits.typeName : mass.typeName;
+                    const displayReadings = edits && edits.readings !== undefined ? edits.readings : mass.readings;
+
+                    html += `<div class="sched-mass-item ${isRemoved ? 'sched-removed' : ''}`;
+                    if (edits) html += ' sched-edited';
+                    html += `">`;
+                    html += `<div class="sched-mass-info">`;
+                    html += `<span class="sched-mass-time">${displayTime}</span>`;
+                    html += `<span class="sched-mass-name">${displayName}</span>`;
+                    html += `<span class="sched-mass-readings"><i class="fas fa-book-open"></i> ${displayReadings} \u010d\u00edt.</span>`;
+                    if (isRemoved) html += `<span class="sched-badge sched-badge-removed"><i class="fas fa-ban"></i> Zru\u0161en\u00e1</span>`;
+                    if (edits) html += `<span class="sched-badge sched-badge-edited"><i class="fas fa-pen"></i> Upraven\u00e1</span>`;
+                    html += `</div>`;
+                    html += `<div class="sched-mass-actions">`;
+
+                    // Edit button
+                    if (!isRemoved) {
+                        html += `<button class="btn btn-sm btn-secondary sched-edit-base" data-date="${mass.date}" data-time="${mass.time}" data-name="${mass.typeName}" data-readings="${mass.readings}" title="Upravi\u0165">`;
+                        html += `<i class="fas fa-pen"></i></button>`;
+                    }
+
+                    // Toggle remove/restore
+                    html += `<button class="btn btn-sm ${isRemoved ? 'btn-primary' : 'btn-danger'} sched-toggle-base" data-date="${mass.date}" data-time="${mass.time}" title="${isRemoved ? 'Obnovit' : 'Zru\u0161i\u0165'}">`;
+                    html += `<i class="fas fa-${isRemoved ? 'undo' : 'times'}"></i></button>`;
+
+                    html += `</div></div>`;
+                }
+            });
+
+            html += `</div>`;
+        });
+
+        container.innerHTML = html;
+
+        // Bind events to dynamically created buttons
+        container.querySelectorAll('.sched-remove-custom').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.dataset.id;
+                DataManager.removeCustomMass(this.schedYear, this.schedMonth, id);
+                this.renderScheduleEditor();
+                this.renderCalendar();
+                this.showToast('Vlastn\u00e1 om\u0161a odstr\u00e1nen\u00e1');
+            });
+        });
+
+        container.querySelectorAll('.sched-toggle-base').forEach(btn => {
+            btn.addEventListener('click', () => {
+                DataManager.toggleRemoveBaseMass(this.schedYear, this.schedMonth, btn.dataset.date, btn.dataset.time);
+                this.renderScheduleEditor();
+                this.renderCalendar();
+                this.showToast('Rozvrh aktualizovan\u00fd');
+            });
+        });
+
+        container.querySelectorAll('.sched-edit-base').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.openEditMassPrompt(btn.dataset.date, btn.dataset.time, btn.dataset.name, parseInt(btn.dataset.readings));
+            });
+        });
+    },
+
+    addCustomMass() {
+        const date = document.getElementById('newMassDate').value;
+        const time = document.getElementById('newMassTime').value;
+        const name = document.getElementById('newMassName').value.trim();
+        const readings = parseInt(document.getElementById('newMassReadings').value);
+
+        if (!date || !time) {
+            this.showToast('Vypl\u0148te d\u00e1tum a \u010das');
+            return;
+        }
+
+        // Validate date is in selected month
+        const [y, m] = date.split('-');
+        if (parseInt(y) !== this.schedYear || parseInt(m) - 1 !== this.schedMonth) {
+            this.showToast('D\u00e1tum mus\u00ed by\u0165 v zvolenom mesiaci');
+            return;
+        }
+
+        DataManager.addCustomMass(this.schedYear, this.schedMonth, {
+            date: date,
+            time: time,
+            typeName: name || 'Sv. om\u0161a (vlastn\u00e1)',
+            readings: readings,
+            cssClass: 'row-special',
+            badgeClass: 'badge-special'
+        });
+
+        // Reset form
+        document.getElementById('newMassName').value = '';
+
+        this.renderScheduleEditor();
+        this.renderCalendar();
+        this.showToast('Nov\u00e1 om\u0161a pridan\u00e1');
+    },
+
+    openEditMassPrompt(dateStr, time, currentName, currentReadings) {
+        const [y, m, d] = dateStr.split('-');
+        const dayName = CalendarLogic.dayNames[new Date(parseInt(y), parseInt(m) - 1, parseInt(d)).getDay()];
+
+        const newTime = prompt(`\u010cas om\u0161e (${parseInt(d)}. ${dayName}):`, time);
+        if (newTime === null) return;
+
+        const newName = prompt('N\u00e1zov / typ om\u0161e:', currentName);
+        if (newName === null) return;
+
+        const newReadings = prompt('Po\u010det \u010d\u00edtan\u00ed (1-7):', String(currentReadings));
+        if (newReadings === null) return;
+
+        const readingsNum = parseInt(newReadings) || currentReadings;
+
+        // Check if anything actually changed
+        if (newTime === time && newName === currentName && readingsNum === currentReadings) {
+            // Reset edits if reverted to original
+            DataManager.editBaseMass(this.schedYear, this.schedMonth, dateStr, time, null);
+        } else {
+            DataManager.editBaseMass(this.schedYear, this.schedMonth, dateStr, time, {
+                time: newTime || time,
+                typeName: newName || currentName,
+                readings: readingsNum
+            });
+        }
+
+        this.renderScheduleEditor();
+        this.renderCalendar();
+        this.showToast('Om\u0161a upraven\u00e1');
     },
 
     // ==========================================
