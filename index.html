@@ -322,6 +322,27 @@
                         </div>
                     </div>
 
+                    <!-- ===== ADMIN CONTACT FOR CHANGE REQUESTS ===== -->
+                    <details class="emailjs-config admin-contact-config">
+                        <summary>
+                            <i class="fas fa-user-shield"></i> Kontakt na admina (pre žiadosti o zmenu)
+                        </summary>
+                        <div class="emailjs-config-body">
+                            <p class="emailjs-info">
+                                Keď niekto klikne na priradeného lektora, zobrazí sa mu možnosť "Požiadať o zmenu".
+                                Žiadosť sa odošle na tieto kontaktné údaje.
+                            </p>
+                            <div class="form-group">
+                                <label for="adminPhone"><i class="fab fa-whatsapp"></i> Telefón admina (WhatsApp)</label>
+                                <input type="tel" id="adminPhone" placeholder="napr. +421900123456">
+                            </div>
+                            <div class="form-group">
+                                <label for="adminEmail"><i class="fas fa-envelope"></i> Email admina</label>
+                                <input type="email" id="adminEmail" placeholder="napr. admin@email.com">
+                            </div>
+                        </div>
+                    </details>
+
                     <!-- ===== EmailJS CONFIG ===== -->
                     <details class="emailjs-config">
                         <summary>
@@ -454,6 +475,48 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal for requesting change (non-admin) -->
+    <div class="modal-overlay" id="changeRequestModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="changeRequestTitle">Požiadať o zmenu</h3>
+                <button class="modal-close" id="closeChangeRequestModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="change-request-body">
+                <div class="change-request-info">
+                    <div class="lock-icon-large">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <p class="change-request-text">
+                        Toto priradenie je <strong>uzamknuté</strong>. Zmenu môže vykonať iba administrátor.
+                    </p>
+                    <div class="change-request-current">
+                        <span class="label">Aktuálny lektor:</span>
+                        <span id="changeRequestCurrentLector" class="value"></span>
+                    </div>
+                </div>
+                <input type="hidden" id="changeRequestDate">
+                <input type="hidden" id="changeRequestTime">
+                <input type="hidden" id="changeRequestReading">
+                <div class="form-group">
+                    <label for="changeRequestReason"><i class="fas fa-comment-alt"></i> Dôvod zmeny (voliteľné)</label>
+                    <textarea id="changeRequestReason" rows="3" placeholder="Napr. Lektor nemôže prísť, je na dovolenke..."></textarea>
+                </div>
+                <div class="form-actions change-request-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelChangeRequest">Zrušiť</button>
+                    <button type="button" class="btn btn-whatsapp" id="sendChangeWhatsApp">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </button>
+                    <button type="button" class="btn btn-primary" id="sendChangeEmail">
+                        <i class="fas fa-envelope"></i> Email
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 

@@ -90,7 +90,9 @@ const DataManager = {
             weekdayReminderTime: '13:00', // deň pred o 13:00
             emailjsServiceId: '',
             emailjsTemplateId: '',
-            emailjsPublicKey: ''
+            emailjsPublicKey: '',
+            adminPhone: '',
+            adminEmail: ''
         };
         return data ? { ...defaults, ...JSON.parse(data) } : defaults;
     },
@@ -919,6 +921,19 @@ const UIController = {
             }
         });
 
+        // Change request modal
+        document.getElementById('closeChangeRequestModal').addEventListener('click', () => this.closeChangeRequestModal());
+        document.getElementById('cancelChangeRequest').addEventListener('click', () => this.closeChangeRequestModal());
+        document.getElementById('sendChangeWhatsApp').addEventListener('click', () => this.sendChangeRequestWhatsApp());
+        document.getElementById('sendChangeEmail').addEventListener('click', () => this.sendChangeRequestEmail());
+        document.getElementById('changeRequestModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) this.closeChangeRequestModal();
+        });
+
+        // Admin contact settings
+        document.getElementById('adminPhone').addEventListener('change', () => this.saveSettings());
+        document.getElementById('adminEmail').addEventListener('change', () => this.saveSettings());
+
         // Settings toggles
         document.getElementById('whatsappEnabled').addEventListener('change', () => this.saveSettings());
         document.getElementById('emailEnabled').addEventListener('change', () => this.saveSettings());
@@ -967,7 +982,7 @@ const UIController = {
             if (e.target === e.currentTarget) this.closeAdminLogin();
         });
         document.getElementById('closeAdminPanel').addEventListener('click', () => this.closeAdminPanel());
-        document.getElementById('adminLogoutBtn').addEventListener('click', () => this.closeAdminPanel());
+        document.getElementById('adminLogoutBtn').addEventListener('click', () => this.adminLogout());
         document.getElementById('adminPanelOverlay').addEventListener('click', (e) => {
             if (e.target === e.currentTarget) this.closeAdminPanel();
         });
@@ -1068,11 +1083,21 @@ const UIController = {
             if (entry.readings >= 1) {
                 const lector1 = DataManager.getAssignment(entry.date, entry.time, '1');
                 if (lector1) {
-                    const span = document.createElement('span');
-                    span.className = 'lector-name';
-                    span.innerHTML = `<i class="fas fa-user"></i> ${lector1}`;
-                    span.addEventListener('click', () => this.openAssignModal(entry.date, entry.time, '1', lector1));
-                    tdReading1.appendChild(span);
+                    if (this.adminLoggedIn) {
+                        // Admin can edit
+                        const span = document.createElement('span');
+                        span.className = 'lector-name';
+                        span.innerHTML = `<i class="fas fa-user"></i> ${lector1}`;
+                        span.addEventListener('click', () => this.openAssignModal(entry.date, entry.time, '1', lector1));
+                        tdReading1.appendChild(span);
+                    } else {
+                        // Non-admin: locked, click to request change
+                        const span = document.createElement('span');
+                        span.className = 'lector-name lector-locked';
+                        span.innerHTML = `<i class="fas fa-lock"></i> ${lector1}`;
+                        span.addEventListener('click', () => this.openChangeRequestModal(entry.date, entry.time, '1', lector1));
+                        tdReading1.appendChild(span);
+                    }
                 } else {
                     const span = document.createElement('span');
                     span.className = 'lector-empty';
@@ -1092,11 +1117,21 @@ const UIController = {
             if (entry.readings >= 2) {
                 const lector2 = DataManager.getAssignment(entry.date, entry.time, '2');
                 if (lector2) {
-                    const span = document.createElement('span');
-                    span.className = 'lector-name';
-                    span.innerHTML = `<i class="fas fa-user"></i> ${lector2}`;
-                    span.addEventListener('click', () => this.openAssignModal(entry.date, entry.time, '2', lector2));
-                    tdReading2.appendChild(span);
+                    if (this.adminLoggedIn) {
+                        // Admin can edit
+                        const span = document.createElement('span');
+                        span.className = 'lector-name';
+                        span.innerHTML = `<i class="fas fa-user"></i> ${lector2}`;
+                        span.addEventListener('click', () => this.openAssignModal(entry.date, entry.time, '2', lector2));
+                        tdReading2.appendChild(span);
+                    } else {
+                        // Non-admin: locked, click to request change
+                        const span = document.createElement('span');
+                        span.className = 'lector-name lector-locked';
+                        span.innerHTML = `<i class="fas fa-lock"></i> ${lector2}`;
+                        span.addEventListener('click', () => this.openChangeRequestModal(entry.date, entry.time, '2', lector2));
+                        tdReading2.appendChild(span);
+                    }
                 } else {
                     const span = document.createElement('span');
                     span.className = 'lector-empty';
@@ -1291,6 +1326,10 @@ const UIController = {
     },
 
     handleRemoveAssign() {
+        if (!this.adminLoggedIn) {
+            this.showToast('Odstrániť priradenie môže iba admin');
+            return;
+        }
         const date = document.getElementById('assignDate').value;
         const time = document.getElementById('assignTime').value;
         const reading = document.getElementById('assignReading').value;
@@ -1517,6 +1556,8 @@ const UIController = {
         document.getElementById('emailjsServiceId').value = settings.emailjsServiceId || '';
         document.getElementById('emailjsTemplateId').value = settings.emailjsTemplateId || '';
         document.getElementById('emailjsPublicKey').value = settings.emailjsPublicKey || '';
+        document.getElementById('adminPhone').value = settings.adminPhone || '';
+        document.getElementById('adminEmail').value = settings.adminEmail || '';
     },
 
     saveSettings() {
@@ -1528,7 +1569,9 @@ const UIController = {
             weekdayReminderTime: document.getElementById('weekdayReminderTime').value,
             emailjsServiceId: document.getElementById('emailjsServiceId').value.trim(),
             emailjsTemplateId: document.getElementById('emailjsTemplateId').value.trim(),
-            emailjsPublicKey: document.getElementById('emailjsPublicKey').value.trim()
+            emailjsPublicKey: document.getElementById('emailjsPublicKey').value.trim(),
+            adminPhone: document.getElementById('adminPhone').value.trim(),
+            adminEmail: document.getElementById('adminEmail').value.trim()
         };
         DataManager.saveSettings(settings);
     },
@@ -1672,6 +1715,7 @@ const UIController = {
         if (login === 'mgrega' && password === 'mgrega') {
             this.adminLoggedIn = true;
             this.closeAdminLogin();
+            this.renderCalendar();
             this.openAdminPanel();
         } else {
             const errorEl = document.getElementById('adminLoginError');
@@ -1693,6 +1737,13 @@ const UIController = {
 
     closeAdminPanel() {
         document.getElementById('adminPanelOverlay').classList.remove('show');
+    },
+
+    adminLogout() {
+        this.adminLoggedIn = false;
+        this.closeAdminPanel();
+        this.renderCalendar();
+        this.showToast('Boli ste odhlásení z admin portálu');
     },
 
     // ==========================================
@@ -1894,6 +1945,106 @@ const UIController = {
         this.renderScheduleEditor();
         this.renderCalendar();
         this.showToast('Om\u0161a upraven\u00e1');
+    },
+
+    // ==========================================
+    // CHANGE REQUEST (non-admin)
+    // ==========================================
+    openChangeRequestModal(date, time, reading, currentLector) {
+        const modal = document.getElementById('changeRequestModal');
+        const title = document.getElementById('changeRequestTitle');
+
+        const [y, m, d] = date.split('-');
+        const dateObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+        const dayName = CalendarLogic.dayNames[dateObj.getDay()];
+
+        title.textContent = `${d}. ${CalendarLogic.monthNames[parseInt(m) - 1]} – ${dayName} ${time} – ${reading}. čítanie`;
+
+        document.getElementById('changeRequestDate').value = date;
+        document.getElementById('changeRequestTime').value = time;
+        document.getElementById('changeRequestReading').value = reading;
+        document.getElementById('changeRequestCurrentLector').textContent = currentLector;
+        document.getElementById('changeRequestReason').value = '';
+
+        modal.classList.add('show');
+    },
+
+    closeChangeRequestModal() {
+        document.getElementById('changeRequestModal').classList.remove('show');
+    },
+
+    sendChangeRequestWhatsApp() {
+        const settings = DataManager.getSettings();
+        const phone = settings.adminPhone;
+        if (!phone) {
+            this.showToast('Telefón admina nie je nastavený');
+            return;
+        }
+
+        const date = document.getElementById('changeRequestDate').value;
+        const time = document.getElementById('changeRequestTime').value;
+        const reading = document.getElementById('changeRequestReading').value;
+        const currentLector = document.getElementById('changeRequestCurrentLector').textContent;
+        const reason = document.getElementById('changeRequestReason').value.trim();
+
+        const [y, m, d] = date.split('-');
+        const dateObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+        const dayName = CalendarLogic.dayNames[dateObj.getDay()];
+        const monthName = CalendarLogic.monthNames[parseInt(m) - 1];
+
+        let message = `📋 *ŽIADOSŤ O ZMENU LEKTORA*\n\n`;
+        message += `📅 Dátum: ${d}. ${monthName} (${dayName})\n`;
+        message += `🕐 Čas: ${time}\n`;
+        message += `📖 Čítanie: ${reading}. čítanie\n`;
+        message += `👤 Aktuálny lektor: ${currentLector}\n`;
+        if (reason) {
+            message += `\n💬 Dôvod: ${reason}\n`;
+        }
+        message += `\nProsím o zmenu priradenia. Ďakujem! 🙏`;
+
+        const cleanPhone = phone.replace(/\s+/g, '').replace(/^\+/, '');
+        const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+        window.open(url, '_blank');
+
+        this.closeChangeRequestModal();
+        this.showToast('Žiadosť odoslaná cez WhatsApp');
+    },
+
+    sendChangeRequestEmail() {
+        const settings = DataManager.getSettings();
+        const email = settings.adminEmail;
+        if (!email) {
+            this.showToast('Email admina nie je nastavený');
+            return;
+        }
+
+        const date = document.getElementById('changeRequestDate').value;
+        const time = document.getElementById('changeRequestTime').value;
+        const reading = document.getElementById('changeRequestReading').value;
+        const currentLector = document.getElementById('changeRequestCurrentLector').textContent;
+        const reason = document.getElementById('changeRequestReason').value.trim();
+
+        const [y, m, d] = date.split('-');
+        const dateObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+        const dayName = CalendarLogic.dayNames[dateObj.getDay()];
+        const monthName = CalendarLogic.monthNames[parseInt(m) - 1];
+
+        const subject = `Žiadosť o zmenu lektora – ${d}. ${monthName} ${time}`;
+        let body = `ŽIADOSŤ O ZMENU LEKTORA\n\n`;
+        body += `Dátum: ${d}. ${monthName} (${dayName})\n`;
+        body += `Čas: ${time}\n`;
+        body += `Čítanie: ${reading}. čítanie\n`;
+        body += `Aktuálny lektor: ${currentLector}\n`;
+        if (reason) {
+            body += `\nDôvod: ${reason}\n`;
+        }
+        body += `\nProsím o zmenu priradenia. Ďakujem!`;
+
+        const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        window.open(mailtoUrl, '_blank');
+
+        this.closeChangeRequestModal();
+        this.showToast('Email pripravený na odoslanie');
     },
 
     // ==========================================

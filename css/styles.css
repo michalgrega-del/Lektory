@@ -490,6 +490,26 @@ tr:hover .mass-note-btn {
     color: white;
 }
 
+/* Locked lector (non-admin) */
+.lector-name.lector-locked {
+    background: rgba(108, 92, 231, 0.08);
+    color: var(--text-secondary);
+    cursor: pointer;
+    border: 1px solid rgba(108, 92, 231, 0.2);
+    position: relative;
+}
+
+.lector-name.lector-locked i.fa-lock {
+    font-size: 0.7rem;
+    color: var(--text-light);
+}
+
+.lector-name.lector-locked:hover {
+    background: rgba(108, 92, 231, 0.15);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
 .lector-empty {
     display: inline-flex;
     align-items: center;
@@ -1084,6 +1104,94 @@ tr:hover .mass-note-btn {
     gap: 0.8rem;
     justify-content: flex-end;
     padding-top: 0.5rem;
+}
+
+/* ==========================================
+   CHANGE REQUEST MODAL
+   ========================================== */
+.change-request-body {
+    padding: 1.5rem;
+}
+
+.change-request-info {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.lock-icon-large {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(108, 92, 231, 0.05));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+    color: var(--primary);
+    border: 2px solid rgba(108, 92, 231, 0.2);
+}
+
+.change-request-text {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.change-request-current {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    background: var(--primary-bg);
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+}
+
+.change-request-current .label {
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.change-request-current .value {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.change-request-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-whatsapp {
+    background: #25D366;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: var(--transition);
+}
+
+.btn-whatsapp:hover {
+    background: #1da851;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+}
+
+/* Admin contact config */
+.admin-contact-config summary {
+    color: var(--primary);
+}
+
+.admin-contact-config summary i {
+    color: var(--primary);
 }
 
 /* ==========================================
@@ -2113,6 +2221,22 @@ tr:hover .mass-note-btn {
 
     .sched-mass-name {
         font-size: 0.82rem;
+    }
+
+    /* Change request modal responsive */
+    .change-request-actions {
+        flex-direction: column;
+    }
+
+    .change-request-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .lock-icon-large {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
     }
 }
 
