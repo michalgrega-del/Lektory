@@ -92,7 +92,9 @@ const DataManager = {
             emailjsTemplateId: '',
             emailjsPublicKey: '',
             adminPhone: '',
-            adminEmail: ''
+            adminEmail: '',
+            adminNotifyAssign: true,
+            adminNotifyChange: true
         };
         return data ? { ...defaults, ...JSON.parse(data) } : defaults;
     },
@@ -933,6 +935,8 @@ const UIController = {
         // Admin contact settings
         document.getElementById('adminPhone').addEventListener('change', () => this.saveSettings());
         document.getElementById('adminEmail').addEventListener('change', () => this.saveSettings());
+        document.getElementById('adminNotifyAssign').addEventListener('change', () => this.saveSettings());
+        document.getElementById('adminNotifyChange').addEventListener('change', () => this.saveSettings());
 
         // Settings toggles
         document.getElementById('whatsappEnabled').addEventListener('change', () => this.saveSettings());
@@ -1323,6 +1327,11 @@ const UIController = {
         this.closeAssignModal();
         this.renderCalendar();
         this.showToast(`Lektor "${lectorName}" bol priradený`);
+
+        // Notify admin about new assignment (if not admin)
+        if (!this.adminLoggedIn) {
+            this.notifyAdminNewAssignment(date, time, reading, lectorName);
+        }
     },
 
     handleRemoveAssign() {
@@ -1558,6 +1567,8 @@ const UIController = {
         document.getElementById('emailjsPublicKey').value = settings.emailjsPublicKey || '';
         document.getElementById('adminPhone').value = settings.adminPhone || '';
         document.getElementById('adminEmail').value = settings.adminEmail || '';
+        document.getElementById('adminNotifyAssign').checked = settings.adminNotifyAssign !== false;
+        document.getElementById('adminNotifyChange').checked = settings.adminNotifyChange !== false;
     },
 
     saveSettings() {
@@ -1571,7 +1582,9 @@ const UIController = {
             emailjsTemplateId: document.getElementById('emailjsTemplateId').value.trim(),
             emailjsPublicKey: document.getElementById('emailjsPublicKey').value.trim(),
             adminPhone: document.getElementById('adminPhone').value.trim(),
-            adminEmail: document.getElementById('adminEmail').value.trim()
+            adminEmail: document.getElementById('adminEmail').value.trim(),
+            adminNotifyAssign: document.getElementById('adminNotifyAssign').checked,
+            adminNotifyChange: document.getElementById('adminNotifyChange').checked
         };
         DataManager.saveSettings(settings);
     },
@@ -1948,6 +1961,43 @@ const UIController = {
     },
 
     // ==========================================
+    // ADMIN NOTIFICATION ON NEW ASSIGNMENT
+    // ==========================================
+    notifyAdminNewAssignment(date, time, reading, lectorName) {
+        const settings = DataManager.getSettings();
+        if (!settings.adminNotifyAssign) return;
+
+        const [y, m, d] = date.split('-');
+        const dateObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+        const dayName = CalendarLogic.dayNames[dateObj.getDay()];
+        const monthName = CalendarLogic.monthNames[parseInt(m) - 1];
+
+        // WhatsApp notification
+        if (settings.adminPhone) {
+            const cleanPhone = settings.adminPhone.replace(/[\s\-\(\)]/g, '').replace(/^\+/, '');
+            let message = `✅ *NOVÉ PRIRADENIE LEKTORA*\n\n`;
+            message += `📅 Dátum: ${d}. ${monthName} (${dayName})\n`;
+            message += `🕐 Čas: ${time}\n`;
+            message += `📖 Čítanie: ${reading}. čítanie\n`;
+            message += `👤 Lektor: ${lectorName}\n`;
+            message += `\nLektor sa priradil k omši. 🙏`;
+            window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        // Email notification
+        if (settings.adminEmail) {
+            const subject = `Nové priradenie lektora – ${d}. ${monthName} ${time}`;
+            let body = `NOVÉ PRIRADENIE LEKTORA\n\n`;
+            body += `Dátum: ${d}. ${monthName} (${dayName})\n`;
+            body += `Čas: ${time}\n`;
+            body += `Čítanie: ${reading}. čítanie\n`;
+            body += `Lektor: ${lectorName}\n`;
+            body += `\nLektor sa priradil k omši.`;
+            window.open(`mailto:${settings.adminEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+        }
+    },
+
+    // ==========================================
     // CHANGE REQUEST (non-admin)
     // ==========================================
     openChangeRequestModal(date, time, reading, currentLector) {
@@ -1975,6 +2025,11 @@ const UIController = {
 
     sendChangeRequestWhatsApp() {
         const settings = DataManager.getSettings();
+        if (!settings.adminNotifyChange) {
+            this.showToast('Notifikácie o zmenách sú vypnuté');
+            this.closeChangeRequestModal();
+            return;
+        }
         const phone = settings.adminPhone;
         if (!phone) {
             this.showToast('Telefón admina nie je nastavený');
@@ -2012,6 +2067,11 @@ const UIController = {
 
     sendChangeRequestEmail() {
         const settings = DataManager.getSettings();
+        if (!settings.adminNotifyChange) {
+            this.showToast('Notifikácie o zmenách sú vypnuté');
+            this.closeChangeRequestModal();
+            return;
+        }
         const email = settings.adminEmail;
         if (!email) {
             this.showToast('Email admina nie je nastavený');
