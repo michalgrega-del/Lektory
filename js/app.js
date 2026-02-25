@@ -926,8 +926,7 @@ const UIController = {
         // Change request modal
         document.getElementById('closeChangeRequestModal').addEventListener('click', () => this.closeChangeRequestModal());
         document.getElementById('cancelChangeRequest').addEventListener('click', () => this.closeChangeRequestModal());
-        document.getElementById('sendChangeWhatsApp').addEventListener('click', () => this.sendChangeRequestWhatsApp());
-        document.getElementById('sendChangeEmail').addEventListener('click', () => this.sendChangeRequestEmail());
+        document.getElementById('sendChangeRequest').addEventListener('click', () => this.sendChangeRequest());
         document.getElementById('changeRequestModal').addEventListener('click', (e) => {
             if (e.target === e.currentTarget) this.closeChangeRequestModal();
         });
@@ -2023,16 +2022,19 @@ const UIController = {
         document.getElementById('changeRequestModal').classList.remove('show');
     },
 
-    sendChangeRequestWhatsApp() {
+    sendChangeRequest() {
         const settings = DataManager.getSettings();
         if (!settings.adminNotifyChange) {
             this.showToast('Notifikácie o zmenách sú vypnuté');
             this.closeChangeRequestModal();
             return;
         }
-        const phone = settings.adminPhone;
-        if (!phone) {
-            this.showToast('Telefón admina nie je nastavený');
+
+        const hasPhone = settings.adminPhone && settings.adminPhone.trim();
+        const hasEmail = settings.adminEmail && settings.adminEmail.trim();
+
+        if (!hasPhone && !hasEmail) {
+            this.showToast('Kontakt na admina nie je nastavený');
             return;
         }
 
@@ -2047,64 +2049,41 @@ const UIController = {
         const dayName = CalendarLogic.dayNames[dateObj.getDay()];
         const monthName = CalendarLogic.monthNames[parseInt(m) - 1];
 
-        let message = `📋 *ŽIADOSŤ O ZMENU LEKTORA*\n\n`;
-        message += `📅 Dátum: ${d}. ${monthName} (${dayName})\n`;
-        message += `🕐 Čas: ${time}\n`;
-        message += `📖 Čítanie: ${reading}. čítanie\n`;
-        message += `👤 Aktuálny lektor: ${currentLector}\n`;
-        if (reason) {
-            message += `\n💬 Dôvod: ${reason}\n`;
-        }
-        message += `\nProsím o zmenu priradenia. Ďakujem! 🙏`;
+        // Send WhatsApp if phone is set
+        if (hasPhone) {
+            let message = `📋 *ŽIADOSŤ O ZMENU LEKTORA*\n\n`;
+            message += `📅 Dátum: ${d}. ${monthName} (${dayName})\n`;
+            message += `🕐 Čas: ${time}\n`;
+            message += `📖 Čítanie: ${reading}. čítanie\n`;
+            message += `👤 Aktuálny lektor: ${currentLector}\n`;
+            if (reason) {
+                message += `\n💬 Dôvod: ${reason}\n`;
+            }
+            message += `\nProsím o zmenu priradenia. Ďakujem! 🙏`;
 
-        const cleanPhone = phone.replace(/\s+/g, '').replace(/^\+/, '');
-        const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
-        window.open(url, '_blank');
+            const cleanPhone = settings.adminPhone.replace(/[\s\-\(\)]/g, '').replace(/^\+/, '');
+            window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        // Send email if email is set
+        if (hasEmail) {
+            const subject = `Žiadosť o zmenu lektora – ${d}. ${monthName} ${time}`;
+            let body = `ŽIADOSŤ O ZMENU LEKTORA\n\n`;
+            body += `Dátum: ${d}. ${monthName} (${dayName})\n`;
+            body += `Čas: ${time}\n`;
+            body += `Čítanie: ${reading}. čítanie\n`;
+            body += `Aktuálny lektor: ${currentLector}\n`;
+            if (reason) {
+                body += `\nDôvod: ${reason}\n`;
+            }
+            body += `\nProsím o zmenu priradenia. Ďakujem!`;
+
+            window.open(`mailto:${settings.adminEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+        }
 
         this.closeChangeRequestModal();
-        this.showToast('Žiadosť odoslaná cez WhatsApp');
-    },
-
-    sendChangeRequestEmail() {
-        const settings = DataManager.getSettings();
-        if (!settings.adminNotifyChange) {
-            this.showToast('Notifikácie o zmenách sú vypnuté');
-            this.closeChangeRequestModal();
-            return;
-        }
-        const email = settings.adminEmail;
-        if (!email) {
-            this.showToast('Email admina nie je nastavený');
-            return;
-        }
-
-        const date = document.getElementById('changeRequestDate').value;
-        const time = document.getElementById('changeRequestTime').value;
-        const reading = document.getElementById('changeRequestReading').value;
-        const currentLector = document.getElementById('changeRequestCurrentLector').textContent;
-        const reason = document.getElementById('changeRequestReason').value.trim();
-
-        const [y, m, d] = date.split('-');
-        const dateObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-        const dayName = CalendarLogic.dayNames[dateObj.getDay()];
-        const monthName = CalendarLogic.monthNames[parseInt(m) - 1];
-
-        const subject = `Žiadosť o zmenu lektora – ${d}. ${monthName} ${time}`;
-        let body = `ŽIADOSŤ O ZMENU LEKTORA\n\n`;
-        body += `Dátum: ${d}. ${monthName} (${dayName})\n`;
-        body += `Čas: ${time}\n`;
-        body += `Čítanie: ${reading}. čítanie\n`;
-        body += `Aktuálny lektor: ${currentLector}\n`;
-        if (reason) {
-            body += `\nDôvod: ${reason}\n`;
-        }
-        body += `\nProsím o zmenu priradenia. Ďakujem!`;
-
-        const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        window.open(mailtoUrl, '_blank');
-
-        this.closeChangeRequestModal();
-        this.showToast('Email pripravený na odoslanie');
+        const channels = [hasPhone ? 'WhatsApp' : null, hasEmail ? 'Email' : null].filter(Boolean).join(' + ');
+        this.showToast(`Žiadosť odoslaná (${channels})`);
     },
 
     // ==========================================

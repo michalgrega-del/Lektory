@@ -3,7 +3,7 @@
    Enables background notifications
    ========================================== */
 
-const CACHE_NAME = 'lektori-v5';
+const CACHE_NAME = 'lektori-v6';
 const ASSETS = [
     '/',
     '/index.html',
