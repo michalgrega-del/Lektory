@@ -502,9 +502,10 @@
                         <option value="">-- Vyberte lektora --</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label for="assignCustomName"><i class="fas fa-pen"></i> Alebo zadajte meno ručne</label>
-                    <input type="text" id="assignCustomName" placeholder="Zadajte meno...">
+                <div class="form-group autocomplete-group">
+                    <label for="assignCustomName"><i class="fas fa-search"></i> Vyhľadať lektora</label>
+                    <input type="text" id="assignCustomName" placeholder="Začnite písať meno..." autocomplete="off">
+                    <div id="assignSuggestions" class="autocomplete-suggestions"></div>
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-danger" id="removeAssignBtn" style="display:none;">
@@ -550,7 +551,7 @@
                 </div>
                 <div class="form-actions change-request-actions">
                     <button type="button" class="btn btn-secondary" id="cancelChangeRequest">Zrušiť</button>
-                    <button type="button" class="btn btn-primary btn-large" id="sendChangeRequest">
+                    <button type="button" class="btn btn-whatsapp btn-large" id="sendChangeRequest">
                         <i class="fas fa-paper-plane"></i> Požiadať o zmenu
                     </button>
                 </div>

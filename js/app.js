@@ -921,6 +921,17 @@ const UIController = {
             if (e.target.value) {
                 document.getElementById('assignLector').value = '';
             }
+            this.showAssignSuggestions(e.target.value);
+        });
+
+        // Close suggestions on click outside
+        document.addEventListener('click', (e) => {
+            const suggestions = document.getElementById('assignSuggestions');
+            const input = document.getElementById('assignCustomName');
+            if (suggestions && !suggestions.contains(e.target) && e.target !== input) {
+                suggestions.innerHTML = '';
+                suggestions.classList.remove('show');
+            }
         });
 
         // Change request modal
@@ -1306,6 +1317,65 @@ const UIController = {
 
     closeAssignModal() {
         document.getElementById('assignModal').classList.remove('show');
+        const suggestions = document.getElementById('assignSuggestions');
+        suggestions.innerHTML = '';
+        suggestions.classList.remove('show');
+    },
+
+    showAssignSuggestions(query) {
+        const suggestions = document.getElementById('assignSuggestions');
+        suggestions.innerHTML = '';
+
+        if (!query || query.length < 1) {
+            suggestions.classList.remove('show');
+            return;
+        }
+
+        const lectors = DataManager.getLectors();
+        const q = query.toLowerCase();
+        const matches = lectors.filter(l => {
+            const name = l.name.toLowerCase();
+            // Match start of first name, last name, or any word
+            return name.includes(q) || name.split(' ').some(w => w.startsWith(q));
+        });
+
+        if (matches.length === 0) {
+            suggestions.classList.remove('show');
+            return;
+        }
+
+        matches.forEach(lector => {
+            const div = document.createElement('div');
+            div.className = 'autocomplete-item';
+
+            // Highlight matching part
+            const name = lector.name;
+            const idx = name.toLowerCase().indexOf(q);
+            if (idx >= 0) {
+                div.innerHTML = `<i class="fas fa-user"></i> ${name.substring(0, idx)}<strong>${name.substring(idx, idx + query.length)}</strong>${name.substring(idx + query.length)}`;
+            } else {
+                div.innerHTML = `<i class="fas fa-user"></i> ${name}`;
+            }
+
+            div.addEventListener('click', () => {
+                document.getElementById('assignCustomName').value = lector.name;
+                document.getElementById('assignLector').value = '';
+                // Also select in dropdown if exists
+                const select = document.getElementById('assignLector');
+                for (let opt of select.options) {
+                    if (opt.value === lector.name) {
+                        select.value = lector.name;
+                        document.getElementById('assignCustomName').value = '';
+                        break;
+                    }
+                }
+                suggestions.innerHTML = '';
+                suggestions.classList.remove('show');
+            });
+            suggestions.appendChild(div);
+        });
+
+        suggestions.classList.add('show');
     },
 
     handleAssignSubmit(e) {
