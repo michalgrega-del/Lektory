@@ -3,12 +3,13 @@
    Enables background notifications
    ========================================== */
 
-const CACHE_NAME = 'lektori-v7';
+const CACHE_NAME = 'lektori-v8';
 const ASSETS = [
     './',
     './index.html',
     './css/styles.css',
-    './js/app.js'
+    './js/app.js',
+    './js/firebase-config.js'
 ];
 
 // Install - cache assets

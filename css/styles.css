@@ -3019,3 +3019,146 @@ tr:hover .mass-note-btn {
 }
 
 /* Responsive scheduler styles are included in main @media block above */
+
+/* ==========================================
+   FIREBASE STATUS INDICATOR (Header)
+   ========================================== */
+.firebase-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: default;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+}
+
+.firebase-status.online {
+    color: var(--success);
+    background: rgba(0, 200, 83, 0.12);
+}
+
+.firebase-status.offline {
+    color: var(--warning);
+    background: rgba(255, 193, 7, 0.12);
+}
+
+.firebase-status.none {
+    color: var(--text-light);
+    background: rgba(136, 136, 136, 0.1);
+    opacity: 0.5;
+}
+
+/* ==========================================
+   FIREBASE STATUS CARD (Admin Panel)
+   ========================================== */
+.firebase-config-section {
+    margin-bottom: 1.5rem;
+}
+
+.firebase-status-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: all 0.3s ease;
+}
+
+.firebase-status-card.status-online {
+    background: linear-gradient(135deg, rgba(0, 200, 83, 0.08), rgba(0, 200, 83, 0.03));
+    border-color: rgba(0, 200, 83, 0.2);
+}
+
+.firebase-status-card.status-offline {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.08), rgba(255, 193, 7, 0.03));
+    border-color: rgba(255, 193, 7, 0.2);
+}
+
+.firebase-status-card.status-none {
+    background: linear-gradient(135deg, rgba(136, 136, 136, 0.06), rgba(136, 136, 136, 0.02));
+    border-color: rgba(136, 136, 136, 0.15);
+}
+
+.firebase-status-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.status-online .firebase-status-icon { color: var(--success); }
+.status-offline .firebase-status-icon { color: var(--warning); }
+.status-none .firebase-status-icon { color: var(--text-light); opacity: 0.6; }
+
+.firebase-status-info h4 {
+    margin: 0 0 0.25rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.firebase-status-info p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--text-light);
+    line-height: 1.4;
+}
+
+.firebase-status-info code {
+    background: rgba(108, 71, 255, 0.1);
+    color: var(--primary);
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+/* ==========================================
+   ADMIN LECTORS SECTION
+   ========================================== */
+.admin-lectors-section {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.admin-lectors-section .lectors-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.admin-lectors-section .lectors-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-lectors-section .lectors-header h3 i {
+    color: var(--primary);
+}
+
+.admin-lectors-section .lectors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .admin-lectors-section .lectors-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .firebase-status-card {
+        flex-direction: column;
+        text-align: center;
+    }
+}

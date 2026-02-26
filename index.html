@@ -13,6 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://api.emailjs.com wss://*.firebaseio.com;">
 </head>
 <body>
     <!-- Header -->
@@ -31,10 +32,9 @@
                     <i class="fas fa-calendar-alt"></i>
                     <span>Kalendár</span>
                 </button>
-                <button class="nav-btn" data-tab="lectors">
-                    <i class="fas fa-users"></i>
-                    <span>Lektori</span>
-                </button>
+                <div id="firebaseStatus" class="firebase-status none" title="Databáza nie je nakonfigurovaná">
+                    <i class="fas fa-database"></i>
+                </div>
             </nav>
         </div>
     </header>
@@ -97,20 +97,6 @@
         </div>
     </main>
 
-    <!-- Lectors Tab -->
-    <main id="tab-lectors" class="tab-content">
-        <div class="lectors-header">
-            <h2><i class="fas fa-users"></i> Databáza lektorov</h2>
-            <button id="addLectorBtn" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Pridať lektora
-            </button>
-        </div>
-
-        <div class="lectors-grid" id="lectorsGrid">
-            <!-- Lector cards will be generated here -->
-        </div>
-    </main>
-
     <!-- Admin FAB Button -->
     <button id="adminFab" class="admin-fab" title="Admin portál">
         <i class="fas fa-shield-alt"></i>
@@ -162,6 +148,39 @@
             </div>
 
             <div class="admin-panel-body">
+                <!-- ===== DATABASE STATUS ===== -->
+                <div class="firebase-config-section">
+                    <div class="firebase-status-card" id="firebaseStatusCard">
+                        <div class="firebase-status-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <div class="firebase-status-info">
+                            <h3 id="firebaseStatusTitle">Lokálny režim</h3>
+                            <p id="firebaseStatusDesc">Dáta sú uložené iba v tomto prehliadači. Pre zdieľanie dát nastavte Firebase v súbore <code>js/firebase-config.js</code></p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="admin-divider">
+
+                <!-- ===== LECTORS MANAGEMENT ===== -->
+                <div class="admin-lectors-section">
+                    <div class="lectors-header">
+                        <h2><i class="fas fa-users"></i> Databáza lektorov</h2>
+                        <button id="addLectorBtn" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Pridať lektora
+                        </button>
+                    </div>
+                    <p class="reminders-description">
+                        Spravujte zoznam lektorov. Títo lektori sa zobrazujú pri priradžovaní čítaní v kalendári.
+                    </p>
+                    <div class="lectors-grid" id="lectorsGrid">
+                        <!-- Lector cards will be generated here -->
+                    </div>
+                </div>
+
+                <hr class="admin-divider">
+
                 <!-- ===== SCHEDULE EDITOR ===== -->
                 <div class="schedule-editor-section">
                     <h2><i class="fas fa-calendar-edit"></i> Správa rozvrhu omší</h2>
@@ -627,6 +646,10 @@
         <p>&copy; 2026 Lektori – Rozpis čítaní na sv. omšiach</p>
     </footer>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

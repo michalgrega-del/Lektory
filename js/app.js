@@ -32,6 +32,196 @@ const CryptoUtils = {
 };
 
 // ==========================================
+// SECURITY UTILITIES
+// ==========================================
+const SecurityUtils = {
+    // Sanitize string to prevent XSS attacks
+    sanitize(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    },
+
+    // Rate limiter for login attempts
+    loginAttempts: 0,
+    loginLockUntil: 0,
+
+    canAttemptLogin() {
+        if (Date.now() < this.loginLockUntil) return false;
+        return true;
+    },
+
+    recordLoginAttempt(success) {
+        if (success) {
+            this.loginAttempts = 0;
+            this.loginLockUntil = 0;
+            return;
+        }
+        this.loginAttempts++;
+        if (this.loginAttempts >= 5) {
+            // Lock for 60 seconds after 5 failed attempts
+            this.loginLockUntil = Date.now() + 60000;
+            this.loginAttempts = 0;
+        }
+    },
+
+    getRemainingLockTime() {
+        const remaining = this.loginLockUntil - Date.now();
+        return remaining > 0 ? Math.ceil(remaining / 1000) : 0;
+    },
+
+    // Validate input length and characters
+    validateInput(str, maxLength = 200) {
+        if (!str) return '';
+        return str.substring(0, maxLength).trim();
+    }
+};
+
+// ==========================================
+// FIREBASE DATABASE (Shared Data Sync)
+// ==========================================
+const FirebaseDB = {
+    db: null,
+    isOnline: false,
+    isConfigured: false,
+    _listeners: [],
+
+    async init() {
+        if (typeof FIREBASE_CONFIG === 'undefined' || !FIREBASE_CONFIG.apiKey) {
+            console.log('[Firebase] Not configured - using local storage only');
+            this.updateStatusUI();
+            return false;
+        }
+
+        try {
+            if (typeof firebase === 'undefined') {
+                console.log('[Firebase] SDK not loaded');
+                return false;
+            }
+
+            if (!firebase.apps.length) {
+                firebase.initializeApp(FIREBASE_CONFIG);
+            }
+            this.db = firebase.database();
+            this.isConfigured = true;
+
+            // Monitor connection
+            this.db.ref('.info/connected').on('value', (snap) => {
+                this.isOnline = snap.val() === true;
+                this.updateStatusUI();
+            });
+
+            // Load all shared data from Firebase
+            await this.loadAllSharedData();
+
+            // Set up real-time listeners
+            this.setupListeners();
+
+            console.log('[Firebase] Connected successfully');
+            return true;
+        } catch (err) {
+            console.error('[Firebase] Init failed:', err);
+            this.isOnline = false;
+            this.updateStatusUI();
+            return false;
+        }
+    },
+
+    updateStatusUI() {
+        const indicator = document.getElementById('firebaseStatus');
+        const card = document.getElementById('firebaseStatusCard');
+        const title = document.getElementById('firebaseStatusTitle');
+        const desc = document.getElementById('firebaseStatusDesc');
+
+        if (indicator) {
+            if (this.isOnline) {
+                indicator.className = 'firebase-status online';
+                indicator.title = 'Pripojen\u00e9 k datab\u00e1ze \u2013 d\u00e1ta zdie\u013ean\u00e9';
+            } else if (this.isConfigured) {
+                indicator.className = 'firebase-status offline';
+                indicator.title = 'Odpojen\u00e9 od datab\u00e1zy';
+            } else {
+                indicator.className = 'firebase-status none';
+                indicator.title = 'Datab\u00e1za nie je nakonfigurovan\u00e1';
+            }
+        }
+
+        if (card && title && desc) {
+            if (this.isOnline) {
+                card.className = 'firebase-status-card status-online';
+                title.textContent = 'Pripojen\u00e9 k datab\u00e1ze';
+                desc.textContent = 'V\u0161etky d\u00e1ta s\u00fa zdie\u013ean\u00e9 \u2013 ka\u017ed\u00fd n\u00e1v\u0161tevn\u00edk vid\u00ed rovnak\u00e9 \u00fadaje.';
+            } else if (this.isConfigured) {
+                card.className = 'firebase-status-card status-offline';
+                title.textContent = 'Odpojen\u00e9 od datab\u00e1zy';
+                desc.textContent = 'D\u00e1ta sa na\u010d\u00edtavaj\u00fa z lok\u00e1lnej cache. Zmeny sa synchronizuj\u00fa po pripojen\u00ed.';
+            } else {
+                card.className = 'firebase-status-card status-none';
+                title.textContent = 'Lok\u00e1lny re\u017eim';
+                desc.innerHTML = 'D\u00e1ta s\u00fa ulo\u017een\u00e9 iba v tomto prehliada\u010di. Pre zdie\u013eanie d\u00e1t nastavte Firebase v s\u00fabore <code>js/firebase-config.js</code>';
+            }
+        }
+    },
+
+    async loadAllSharedData() {
+        if (!this.db) return;
+        try {
+            const snapshot = await this.db.ref('/').once('value');
+            const data = snapshot.val() || {};
+            if (data.lectors) localStorage.setItem('lektori_db', JSON.stringify(data.lectors));
+            if (data.assignments) localStorage.setItem('lektori_assignments', JSON.stringify(data.assignments));
+            if (data.customSchedule) localStorage.setItem('lektori_custom_schedule', JSON.stringify(data.customSchedule));
+            if (data.massNotes) localStorage.setItem('lektori_mass_notes', JSON.stringify(data.massNotes));
+        } catch (err) {
+            console.error('[Firebase] Load failed:', err);
+        }
+    },
+
+    setupListeners() {
+        if (!this.db) return;
+        const paths = {
+            'lectors': 'lektori_db',
+            'assignments': 'lektori_assignments',
+            'customSchedule': 'lektori_custom_schedule',
+            'massNotes': 'lektori_mass_notes'
+        };
+
+        Object.entries(paths).forEach(([fbPath, lsKey]) => {
+            const ref = this.db.ref(fbPath);
+            ref.on('value', (snapshot) => {
+                const val = snapshot.val();
+                if (val !== null && val !== undefined) {
+                    localStorage.setItem(lsKey, JSON.stringify(val));
+                } else {
+                    localStorage.removeItem(lsKey);
+                }
+                // Re-render UI when data changes
+                if (typeof UIController !== 'undefined' && UIController._initialized) {
+                    UIController.renderCalendar();
+                    if (UIController.adminLoggedIn) {
+                        UIController.renderAdminLectors();
+                    }
+                }
+            });
+            this._listeners.push(ref);
+        });
+    },
+
+    // Sync localStorage key to Firebase path
+    syncToFirebase(lsKey, fbPath) {
+        if (!this.db) return;
+        try {
+            const data = localStorage.getItem(lsKey);
+            const parsed = data ? JSON.parse(data) : null;
+            this.db.ref(fbPath).set(parsed);
+        } catch (err) {
+            console.error(`[Firebase] Sync failed (${fbPath}):`, err);
+        }
+    }
+};
+
+// ==========================================
 // DATA MANAGEMENT
 // ==========================================
 const DataManager = {
@@ -98,6 +288,7 @@ const DataManager = {
 
     saveLectors(lectors) {
         localStorage.setItem(this.LECTORS_KEY, JSON.stringify(lectors));
+        FirebaseDB.syncToFirebase(this.LECTORS_KEY, 'lectors');
     },
 
     addLector(lector) {
@@ -132,6 +323,7 @@ const DataManager = {
 
     saveAssignments(assignments) {
         localStorage.setItem(this.ASSIGNMENTS_KEY, JSON.stringify(assignments));
+        FirebaseDB.syncToFirebase(this.ASSIGNMENTS_KEY, 'assignments');
     },
 
     setAssignment(date, time, reading, lectorName) {
@@ -238,6 +430,7 @@ const DataManager = {
         const key = `${year}-${String(month + 1).padStart(2, '0')}`;
         all[key] = schedule;
         localStorage.setItem(this.CUSTOM_SCHEDULE_KEY, JSON.stringify(all));
+        FirebaseDB.syncToFirebase(this.CUSTOM_SCHEDULE_KEY, 'customSchedule');
     },
 
     addCustomMass(year, month, mass) {
@@ -303,6 +496,7 @@ const DataManager = {
             delete notes[`${dateStr}_${time}`];
         }
         localStorage.setItem(this.MASS_NOTES_KEY, JSON.stringify(notes));
+        FirebaseDB.syncToFirebase(this.MASS_NOTES_KEY, 'massNotes');
     }
 };
 
@@ -934,15 +1128,17 @@ const UIController = {
     schedMonth: 2,
     schedYear: 2026,
 
+    _initialized: false,
+
     init() {
         this.bindEvents();
         this.renderCalendar();
-        this.renderLectors();
         this.renderReminders();
         this.loadSettings();
         this.initScheduler();
         this.renderSchedulerLog();
         this.updateSchedulerStatus();
+        this._initialized = true;
     },
 
     // Tab switching
@@ -1119,8 +1315,15 @@ const UIController = {
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
 
-        document.querySelector(`.nav-btn[data-tab="${tab}"]`).classList.add('active');
-        document.getElementById(`tab-${tab}`).classList.add('active');
+        const btn = document.querySelector(`.nav-btn[data-tab="${tab}"]`);
+        const tabEl = document.getElementById(`tab-${tab}`);
+        if (btn) btn.classList.add('active');
+        if (tabEl) tabEl.classList.add('active');
+    },
+
+    // Render lectors in admin panel
+    renderAdminLectors() {
+        this.renderLectors();
     },
 
     // ==========================================
@@ -1197,18 +1400,19 @@ const UIController = {
             if (entry.readings >= 1) {
                 const lector1 = DataManager.getAssignment(entry.date, entry.time, '1');
                 if (lector1) {
+                    const safeLector1 = SecurityUtils.sanitize(lector1);
                     if (this.adminLoggedIn) {
                         // Admin can edit
                         const span = document.createElement('span');
                         span.className = 'lector-name';
-                        span.innerHTML = `<i class="fas fa-user"></i> ${lector1}`;
+                        span.innerHTML = `<i class="fas fa-user"></i> ${safeLector1}`;
                         span.addEventListener('click', () => this.openAssignModal(entry.date, entry.time, '1', lector1));
                         tdReading1.appendChild(span);
                     } else {
                         // Non-admin: locked, click to request change
                         const span = document.createElement('span');
                         span.className = 'lector-name lector-locked';
-                        span.innerHTML = `<i class="fas fa-lock"></i> ${lector1}`;
+                        span.innerHTML = `<i class="fas fa-lock"></i> ${safeLector1}`;
                         span.addEventListener('click', () => this.openChangeRequestModal(entry.date, entry.time, '1', lector1));
                         tdReading1.appendChild(span);
                     }
@@ -1231,18 +1435,19 @@ const UIController = {
             if (entry.readings >= 2) {
                 const lector2 = DataManager.getAssignment(entry.date, entry.time, '2');
                 if (lector2) {
+                    const safeLector2 = SecurityUtils.sanitize(lector2);
                     if (this.adminLoggedIn) {
                         // Admin can edit
                         const span = document.createElement('span');
                         span.className = 'lector-name';
-                        span.innerHTML = `<i class="fas fa-user"></i> ${lector2}`;
+                        span.innerHTML = `<i class="fas fa-user"></i> ${safeLector2}`;
                         span.addEventListener('click', () => this.openAssignModal(entry.date, entry.time, '2', lector2));
                         tdReading2.appendChild(span);
                     } else {
                         // Non-admin: locked, click to request change
                         const span = document.createElement('span');
                         span.className = 'lector-name lector-locked';
-                        span.innerHTML = `<i class="fas fa-lock"></i> ${lector2}`;
+                        span.innerHTML = `<i class="fas fa-lock"></i> ${safeLector2}`;
                         span.addEventListener('click', () => this.openChangeRequestModal(entry.date, entry.time, '2', lector2));
                         tdReading2.appendChild(span);
                     }
@@ -1284,21 +1489,24 @@ const UIController = {
             const card = document.createElement('div');
             card.className = 'lector-card';
 
+            const safeName = SecurityUtils.sanitize(lector.name);
+            const safePhone = SecurityUtils.sanitize(lector.phone);
+            const safeEmail = SecurityUtils.sanitize(lector.email);
             const initials = lector.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
             card.innerHTML = `
                 <div class="lector-card-header">
-                    <div class="lector-avatar">${initials}</div>
-                    <div class="lector-card-name">${lector.name}</div>
+                    <div class="lector-avatar">${SecurityUtils.sanitize(initials)}</div>
+                    <div class="lector-card-name">${safeName}</div>
                 </div>
                 <div class="lector-card-info">
                     <div class="lector-card-info-item">
                         <i class="fas fa-phone"></i>
-                        <span>${lector.phone}</span>
+                        <span>${safePhone}</span>
                     </div>
                     <div class="lector-card-info-item">
                         <i class="fas fa-envelope"></i>
-                        <span>${lector.email}</span>
+                        <span>${safeEmail}</span>
                     </div>
                 </div>
                 <div class="lector-card-actions">
@@ -1346,9 +1554,9 @@ const UIController = {
         e.preventDefault();
         const id = document.getElementById('lectorId').value;
         const lector = {
-            name: document.getElementById('lectorName').value.trim(),
-            phone: document.getElementById('lectorPhone').value.trim(),
-            email: document.getElementById('lectorEmail').value.trim()
+            name: SecurityUtils.validateInput(document.getElementById('lectorName').value.trim(), 100),
+            phone: SecurityUtils.validateInput(document.getElementById('lectorPhone').value.trim(), 20),
+            email: SecurityUtils.validateInput(document.getElementById('lectorEmail').value.trim(), 100)
         };
 
         if (id) {
@@ -1891,7 +2099,17 @@ const UIController = {
 
     async handleAdminLogin(e) {
         e.preventDefault();
-        const login = document.getElementById('adminLogin').value.trim();
+
+        // Rate limiting - prevent brute force
+        if (!SecurityUtils.canAttemptLogin()) {
+            const remaining = SecurityUtils.getRemainingLockTime();
+            const errorEl = document.getElementById('adminLoginError');
+            errorEl.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Príliš veľa pokusov. Skúste o ${remaining}s`;
+            errorEl.style.display = 'flex';
+            return;
+        }
+
+        const login = SecurityUtils.validateInput(document.getElementById('adminLogin').value.trim(), 50);
         const password = document.getElementById('adminPassword').value;
         const creds = DataManager.getAdminCredentials();
 
@@ -1902,12 +2120,15 @@ const UIController = {
         const passwordHash = await CryptoUtils.sha256(password);
 
         if (loginHash === creds.loginHash && passwordHash === creds.passwordHash) {
+            SecurityUtils.recordLoginAttempt(true);
             this.adminLoggedIn = true;
             this.closeAdminLogin();
             this.renderCalendar();
             this.openAdminPanel();
         } else {
+            SecurityUtils.recordLoginAttempt(false);
             const errorEl = document.getElementById('adminLoginError');
+            errorEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Nesprávne prihlasovacie meno alebo heslo';
             errorEl.style.display = 'flex';
             errorEl.classList.add('shake');
             setTimeout(() => errorEl.classList.remove('shake'), 600);
@@ -1919,10 +2140,12 @@ const UIController = {
         // Sync schedule editor month with main calendar
         this.schedMonth = this.currentMonth;
         this.schedYear = this.currentYear;
+        this.renderLectors();
         this.renderScheduleEditor();
         this.renderReminders();
         this.renderSchedulerLog();
         this.loadAdminCredentials();
+        FirebaseDB.updateStatusUI();
     },
 
     closeAdminPanel() {
@@ -2373,6 +2596,9 @@ const UIController = {
 document.addEventListener('DOMContentLoaded', async () => {
     // Initialize/migrate admin credentials to hashed format
     await DataManager.initAdminCredentials();
+
+    // Initialize Firebase for shared data
+    await FirebaseDB.init();
 
     UIController.init();
 
