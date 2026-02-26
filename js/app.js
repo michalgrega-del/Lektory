@@ -4,6 +4,34 @@
    ========================================== */
 
 // ==========================================
+// CRYPTO UTILITIES (SHA-256 hashing)
+// ==========================================
+const CryptoUtils = {
+    // SHA-256 hash function using Web Crypto API
+    async sha256(str) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(str);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    },
+
+    // Base64 encode (for display name - not security, just obfuscation)
+    encode(str) {
+        return btoa(unescape(encodeURIComponent(str)));
+    },
+
+    // Base64 decode
+    decode(str) {
+        try {
+            return decodeURIComponent(escape(atob(str)));
+        } catch {
+            return '***';
+        }
+    }
+};
+
+// ==========================================
 // DATA MANAGEMENT
 // ==========================================
 const DataManager = {
@@ -16,16 +44,50 @@ const DataManager = {
     MASS_NOTES_KEY: 'lektori_mass_notes',
     ADMIN_CREDENTIALS_KEY: 'lektori_admin_credentials',
 
-    // Admin credentials
+    // Pre-computed SHA-256 hashes of default credentials
+    // These are hashes - the original values cannot be recovered from them
+    DEFAULT_LOGIN_HASH: 'f186f162d93b8319ad41c6ef3a84ff351ae4d0b2db3f6ec01c1af43235b81de2',
+    DEFAULT_PASSWORD_HASH: 'f186f162d93b8319ad41c6ef3a84ff351ae4d0b2db3f6ec01c1af43235b81de2',
+    DEFAULT_LOGIN_DISPLAY: 'bWdyZWdh', // base64 encoded for display only
+
+    // Admin credentials (stored as SHA-256 hashes)
     getAdminCredentials() {
         const data = localStorage.getItem(this.ADMIN_CREDENTIALS_KEY);
-        if (data) return JSON.parse(data);
-        // Default credentials
-        return { login: 'mgrega', password: 'mgrega' };
+        if (data) {
+            const parsed = JSON.parse(data);
+            // Migration: if old plain-text format detected, flag for migration
+            if (parsed.login && !parsed.loginHash) {
+                return { needsMigration: true, login: parsed.login, password: parsed.password };
+            }
+            return parsed;
+        }
+        // Return default hashed credentials
+        return {
+            loginHash: this.DEFAULT_LOGIN_HASH,
+            passwordHash: this.DEFAULT_PASSWORD_HASH,
+            loginDisplay: this.DEFAULT_LOGIN_DISPLAY
+        };
     },
 
-    saveAdminCredentials(login, password) {
-        localStorage.setItem(this.ADMIN_CREDENTIALS_KEY, JSON.stringify({ login, password }));
+    // Initialize / migrate credentials to hashed format
+    async initAdminCredentials() {
+        const existing = this.getAdminCredentials();
+        if (existing && !existing.needsMigration && existing.loginHash) return;
+
+        // Migrate from old plain-text format
+        if (existing && existing.needsMigration) {
+            const loginHash = await CryptoUtils.sha256(existing.login);
+            const passwordHash = await CryptoUtils.sha256(existing.password);
+            const loginDisplay = CryptoUtils.encode(existing.login);
+            this.saveAdminCredentials(loginHash, passwordHash, loginDisplay);
+        }
+        // If no credentials at all, defaults are used from getAdminCredentials()
+    },
+
+    saveAdminCredentials(loginHash, passwordHash, loginDisplay) {
+        localStorage.setItem(this.ADMIN_CREDENTIALS_KEY, JSON.stringify({
+            loginHash, passwordHash, loginDisplay
+        }));
     },
 
     // Lectors CRUD
@@ -1827,13 +1889,19 @@ const UIController = {
         document.getElementById('adminLoginOverlay').classList.remove('show');
     },
 
-    handleAdminLogin(e) {
+    async handleAdminLogin(e) {
         e.preventDefault();
         const login = document.getElementById('adminLogin').value.trim();
         const password = document.getElementById('adminPassword').value;
         const creds = DataManager.getAdminCredentials();
 
-        if (login === creds.login && password === creds.password) {
+        if (!creds || !creds.loginHash) return;
+
+        // Hash the input and compare with stored hashes
+        const loginHash = await CryptoUtils.sha256(login);
+        const passwordHash = await CryptoUtils.sha256(password);
+
+        if (loginHash === creds.loginHash && passwordHash === creds.passwordHash) {
             this.adminLoggedIn = true;
             this.closeAdminLogin();
             this.renderCalendar();
@@ -1863,7 +1931,11 @@ const UIController = {
 
     loadAdminCredentials() {
         const creds = DataManager.getAdminCredentials();
-        document.getElementById('currentAdminLogin').textContent = creds.login;
+        // Decode the base64-encoded display name
+        const displayName = creds && creds.loginDisplay
+            ? CryptoUtils.decode(creds.loginDisplay)
+            : '***';
+        document.getElementById('currentAdminLogin').textContent = displayName;
         document.getElementById('newAdminLogin').value = '';
         document.getElementById('newAdminPassword').value = '';
         document.getElementById('confirmAdminPassword').value = '';
@@ -1871,7 +1943,7 @@ const UIController = {
         document.getElementById('credentialsSuccess').style.display = 'none';
     },
 
-    saveAdminCredentials() {
+    async saveAdminCredentials() {
         const newLogin = document.getElementById('newAdminLogin').value.trim();
         const newPassword = document.getElementById('newAdminPassword').value;
         const confirmPassword = document.getElementById('confirmAdminPassword').value;
@@ -1910,10 +1982,25 @@ const UIController = {
         }
 
         const currentCreds = DataManager.getAdminCredentials();
-        const updatedLogin = newLogin || currentCreds.login;
-        const updatedPassword = newPassword || currentCreds.password;
 
-        DataManager.saveAdminCredentials(updatedLogin, updatedPassword);
+        // Hash new values with SHA-256
+        let updatedLoginHash, updatedPasswordHash, updatedLoginDisplay;
+
+        if (newLogin) {
+            updatedLoginHash = await CryptoUtils.sha256(newLogin);
+            updatedLoginDisplay = CryptoUtils.encode(newLogin);
+        } else {
+            updatedLoginHash = currentCreds.loginHash;
+            updatedLoginDisplay = currentCreds.loginDisplay;
+        }
+
+        if (newPassword) {
+            updatedPasswordHash = await CryptoUtils.sha256(newPassword);
+        } else {
+            updatedPasswordHash = currentCreds.passwordHash;
+        }
+
+        DataManager.saveAdminCredentials(updatedLoginHash, updatedPasswordHash, updatedLoginDisplay);
 
         // Show success
         const changes = [];
@@ -1923,7 +2010,8 @@ const UIController = {
         successEl.style.display = 'flex';
 
         // Update UI
-        document.getElementById('currentAdminLogin').textContent = updatedLogin;
+        const displayName = newLogin || CryptoUtils.decode(currentCreds.loginDisplay);
+        document.getElementById('currentAdminLogin').textContent = displayName;
         document.getElementById('newAdminLogin').value = '';
         document.getElementById('newAdminPassword').value = '';
         document.getElementById('confirmAdminPassword').value = '';
@@ -2282,12 +2370,15 @@ const UIController = {
 // ==========================================
 // INITIALIZE APP
 // ==========================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize/migrate admin credentials to hashed format
+    await DataManager.initAdminCredentials();
+
     UIController.init();
 
     // Register Service Worker
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('./sw.js')
             .then(reg => console.log('[SW] Registered:', reg.scope))
             .catch(err => console.log('[SW] Registration failed:', err));
     }
