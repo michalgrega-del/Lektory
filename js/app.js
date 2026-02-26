@@ -14,6 +14,19 @@ const DataManager = {
     SCHEDULER_LOG_KEY: 'lektori_scheduler_log',
     CUSTOM_SCHEDULE_KEY: 'lektori_custom_schedule',
     MASS_NOTES_KEY: 'lektori_mass_notes',
+    ADMIN_CREDENTIALS_KEY: 'lektori_admin_credentials',
+
+    // Admin credentials
+    getAdminCredentials() {
+        const data = localStorage.getItem(this.ADMIN_CREDENTIALS_KEY);
+        if (data) return JSON.parse(data);
+        // Default credentials
+        return { login: 'mgrega', password: 'mgrega' };
+    },
+
+    saveAdminCredentials(login, password) {
+        localStorage.setItem(this.ADMIN_CREDENTIALS_KEY, JSON.stringify({ login, password }));
+    },
 
     // Lectors CRUD
     getLectors() {
@@ -1001,6 +1014,31 @@ const UIController = {
             if (e.target === e.currentTarget) this.closeAdminPanel();
         });
 
+        // Admin credentials
+        document.getElementById('saveCredentialsBtn').addEventListener('click', () => this.saveAdminCredentials());
+        document.getElementById('toggleNewPassword').addEventListener('click', () => {
+            const input = document.getElementById('newAdminPassword');
+            const icon = document.getElementById('toggleNewPassword').querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        });
+        document.getElementById('toggleConfirmPassword').addEventListener('click', () => {
+            const input = document.getElementById('confirmAdminPassword');
+            const icon = document.getElementById('toggleConfirmPassword').querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        });
+
         // Schedule editor
         document.getElementById('schedPrevMonth').addEventListener('click', () => {
             this.schedMonth--;
@@ -1793,8 +1831,9 @@ const UIController = {
         e.preventDefault();
         const login = document.getElementById('adminLogin').value.trim();
         const password = document.getElementById('adminPassword').value;
+        const creds = DataManager.getAdminCredentials();
 
-        if (login === 'mgrega' && password === 'mgrega') {
+        if (login === creds.login && password === creds.password) {
             this.adminLoggedIn = true;
             this.closeAdminLogin();
             this.renderCalendar();
@@ -1815,10 +1854,81 @@ const UIController = {
         this.renderScheduleEditor();
         this.renderReminders();
         this.renderSchedulerLog();
+        this.loadAdminCredentials();
     },
 
     closeAdminPanel() {
         document.getElementById('adminPanelOverlay').classList.remove('show');
+    },
+
+    loadAdminCredentials() {
+        const creds = DataManager.getAdminCredentials();
+        document.getElementById('currentAdminLogin').textContent = creds.login;
+        document.getElementById('newAdminLogin').value = '';
+        document.getElementById('newAdminPassword').value = '';
+        document.getElementById('confirmAdminPassword').value = '';
+        document.getElementById('credentialsError').style.display = 'none';
+        document.getElementById('credentialsSuccess').style.display = 'none';
+    },
+
+    saveAdminCredentials() {
+        const newLogin = document.getElementById('newAdminLogin').value.trim();
+        const newPassword = document.getElementById('newAdminPassword').value;
+        const confirmPassword = document.getElementById('confirmAdminPassword').value;
+        const errorEl = document.getElementById('credentialsError');
+        const errorMsg = document.getElementById('credentialsErrorMsg');
+        const successEl = document.getElementById('credentialsSuccess');
+        const successMsg = document.getElementById('credentialsSuccessMsg');
+
+        // Hide previous messages
+        errorEl.style.display = 'none';
+        successEl.style.display = 'none';
+
+        // Validate
+        if (!newLogin && !newPassword) {
+            errorMsg.textContent = 'Vyplňte aspoň jedno pole (meno alebo heslo)';
+            errorEl.style.display = 'flex';
+            return;
+        }
+
+        if (newPassword && newPassword.length < 3) {
+            errorMsg.textContent = 'Heslo musí mať aspoň 3 znaky';
+            errorEl.style.display = 'flex';
+            return;
+        }
+
+        if (newPassword && newPassword !== confirmPassword) {
+            errorMsg.textContent = 'Heslá sa nezhodujú';
+            errorEl.style.display = 'flex';
+            return;
+        }
+
+        if (newLogin && newLogin.length < 3) {
+            errorMsg.textContent = 'Meno musí mať aspoň 3 znaky';
+            errorEl.style.display = 'flex';
+            return;
+        }
+
+        const currentCreds = DataManager.getAdminCredentials();
+        const updatedLogin = newLogin || currentCreds.login;
+        const updatedPassword = newPassword || currentCreds.password;
+
+        DataManager.saveAdminCredentials(updatedLogin, updatedPassword);
+
+        // Show success
+        const changes = [];
+        if (newLogin) changes.push('meno');
+        if (newPassword) changes.push('heslo');
+        successMsg.textContent = `Úspešne zmenené: ${changes.join(' a ')}`;
+        successEl.style.display = 'flex';
+
+        // Update UI
+        document.getElementById('currentAdminLogin').textContent = updatedLogin;
+        document.getElementById('newAdminLogin').value = '';
+        document.getElementById('newAdminPassword').value = '';
+        document.getElementById('confirmAdminPassword').value = '';
+
+        this.showToast('Prihlasovacie údaje boli zmenené');
     },
 
     adminLogout() {

@@ -441,6 +441,64 @@
                     </div>
                 </div>
 
+                <hr class="admin-divider">
+
+                <!-- ===== ADMIN CREDENTIALS ===== -->
+                <div class="admin-credentials-section">
+                    <h2><i class="fas fa-user-cog"></i> Zmena prihlasovacích údajov</h2>
+                    <p class="reminders-description">
+                        Tu si môžete zmeniť prihlasovacie meno a heslo do admin portálu.
+                    </p>
+
+                    <div class="credentials-form">
+                        <div class="credentials-current">
+                            <div class="credentials-current-info">
+                                <i class="fas fa-user-circle"></i>
+                                <div>
+                                    <strong>Aktuálne meno:</strong>
+                                    <span id="currentAdminLogin">mgrega</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="credentials-fields">
+                            <div class="form-group">
+                                <label for="newAdminLogin"><i class="fas fa-user"></i> Nové prihlasovacie meno</label>
+                                <input type="text" id="newAdminLogin" placeholder="Zadajte nové meno" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="newAdminPassword"><i class="fas fa-lock"></i> Nové heslo</label>
+                                <div class="password-input-wrapper">
+                                    <input type="password" id="newAdminPassword" placeholder="Zadajte nové heslo" autocomplete="new-password">
+                                    <button type="button" class="password-toggle-btn" id="toggleNewPassword" title="Zobraziť heslo">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmAdminPassword"><i class="fas fa-lock"></i> Potvrdiť nové heslo</label>
+                                <div class="password-input-wrapper">
+                                    <input type="password" id="confirmAdminPassword" placeholder="Zopakujte nové heslo" autocomplete="new-password">
+                                    <button type="button" class="password-toggle-btn" id="toggleConfirmPassword" title="Zobraziť heslo">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="credentialsError" class="credentials-error" style="display:none;">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <span id="credentialsErrorMsg"></span>
+                            </div>
+                            <div id="credentialsSuccess" class="credentials-success" style="display:none;">
+                                <i class="fas fa-check-circle"></i>
+                                <span id="credentialsSuccessMsg"></span>
+                            </div>
+                            <button id="saveCredentialsBtn" class="btn btn-primary btn-large">
+                                <i class="fas fa-save"></i> Uložiť zmeny
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="admin-logout-section">
                     <button id="adminLogoutBtn" class="btn btn-secondary btn-large">
                         <i class="fas fa-sign-out-alt"></i> Odhlásiť sa
