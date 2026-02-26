@@ -5,10 +5,10 @@
 
 const CACHE_NAME = 'lektori-v7';
 const ASSETS = [
-    '/',
-    '/index.html',
-    '/css/styles.css',
-    '/js/app.js'
+    './',
+    './index.html',
+    './css/styles.css',
+    './js/app.js'
 ];
 
 // Install - cache assets
